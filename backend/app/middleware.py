@@ -1,4 +1,5 @@
 import time
+import traceback
 import uuid
 
 from fastapi import Request
@@ -21,7 +22,11 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
         except Exception as exc:
             elapsed = (time.perf_counter() - start) * 1000
-            logger.error(f"[{request_id}] ✗ {request.method} {request.url.path} — EXCEPTION {exc!r} ({elapsed:.1f}ms)")
+            logger.error(
+                f"[{request_id}] ✗ {request.method} {request.url.path} — "
+                f"EXCEPTION {type(exc).__name__}: {exc} ({elapsed:.1f}ms)\n"
+                + traceback.format_exc()
+            )
             raise
 
         elapsed = (time.perf_counter() - start) * 1000

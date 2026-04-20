@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Посещаемость — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0">Посещаемость</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/pages/admin/dashboard.html">Главная</a></li>
+                            <li class="breadcrumb-item active">Посещаемость</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div id="alerts"></div>
+
+                <!-- Filters -->
+                <div class="card card-outline card-secondary mb-3">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-filter mr-2"></i>Фильтры</h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Класс</label>
+                                    <select class="form-control" id="filter-class">
+                                        <option value="">Все классы</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Ученик</label>
+                                    <select class="form-control" id="filter-student">
+                                        <option value="">Все ученики</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Урок</label>
+                                    <select class="form-control" id="filter-lesson">
+                                        <option value="">Все уроки</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-sm" id="apply-filter">
+                            <i class="fas fa-search"></i> Применить
+                        </button>
+                        <button class="btn btn-secondary btn-sm ml-2" id="reset-filter">
+                            <i class="fas fa-times"></i> Сбросить
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-clipboard-check mr-2"></i>Записи посещаемости</h3>
+                        <div class="card-tools">
+                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#create-modal">
+                                <i class="fas fa-plus"></i> Отметить
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Ученик</th>
+                                    <th>Дата урока</th>
+                                    <th>Предмет</th>
+                                    <th>Класс</th>
+                                    <th>Статус</th>
+                                    <th style="width:90px">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendance-tbody">
+                                <tr><td colspan="6" class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> Загрузка...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Create modal -->
+    <div class="modal fade" id="create-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fas fa-plus mr-2"></i>Отметить посещаемость</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="create-form">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Урок <span class="text-danger">*</span></label>
+                            <select class="form-control" id="create-lesson" required>
+                                <option value="">— Выберите урок —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Ученик <span class="text-danger">*</span></label>
+                            <select class="form-control" id="create-student" required>
+                                <option value="">— Выберите ученика —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Статус <span class="text-danger">*</span></label>
+                            <select class="form-control" id="create-status" required>
+                                <option value="present">Присутствовал</option>
+                                <option value="absent">Отсутствовал</option>
+                                <option value="late">Опоздал</option>
+                                <option value="excused">Уважительная причина</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit modal -->
+    <div class="modal fade" id="edit-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title"><i class="fas fa-edit mr-2"></i>Изменить статус</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="edit-form">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Статус <span class="text-danger">*</span></label>
+                            <select class="form-control" id="edit-status" required>
+                                <option value="present">Присутствовал</option>
+                                <option value="absent">Отсутствовал</option>
+                                <option value="late">Опоздал</option>
+                                <option value="excused">Уважительная причина</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-info"><i class="fas fa-save"></i> Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete modal -->
+    <div class="modal fade" id="delete-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-trash mr-2"></i>Удалить запись</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">Удалить запись посещаемости <strong id="delete-desc"></strong>?</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete"><i class="fas fa-trash"></i> Удалить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script>
+    requireAuth('admin', 'vice_principal');
+
+    const STATUS_LABELS = {
+        present: { label: 'Присутствовал',        color: 'success' },
+        absent:  { label: 'Отсутствовал',          color: 'danger'  },
+        late:    { label: 'Опоздал',               color: 'warning' },
+        excused: { label: 'Уважительная причина',  color: 'info'    },
+    };
+
+    let usersMap = {}, lessonsMap = {}, subjectsMap = {}, classesMap = {};
+    let allLessons = [], allStudents = [];
+    let editId = null, deleteId = null;
+
+    function showAlert(msg, type = 'danger') {
+        document.getElementById('alerts').innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show">
+                <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle mr-2"></i>${msg}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
+    }
+
+    function renderAttendances(records) {
+        const tbody = document.getElementById('attendance-tbody');
+        if (!records.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3 text-muted">Записи не найдены</td></tr>';
+            return;
+        }
+        tbody.innerHTML = records.map(r => {
+            const lesson = lessonsMap[r.lesson_id] || {};
+            const s = STATUS_LABELS[r.status] || { label: r.status, color: 'secondary' };
+            return `<tr>
+                <td>${usersMap[r.student_id] || '—'}</td>
+                <td>${lesson.date || '—'}</td>
+                <td>${subjectsMap[lesson.subject_id] || '—'}</td>
+                <td>${classesMap[lesson.class_id] || '—'}</td>
+                <td><span class="badge badge-${s.color}">${s.label}</span></td>
+                <td>
+                    <button class="btn btn-xs btn-info mr-1" onclick="openEdit('${r.id}','${r.status}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-xs btn-danger" onclick="openDelete('${r.id}','${usersMap[r.student_id] || ''}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    async function loadAttendances() {
+        const lessonId  = document.getElementById('filter-lesson').value;
+        const studentId = document.getElementById('filter-student').value;
+        let url = '/attendances/?';
+        if (lessonId)  url += `lesson_id=${lessonId}&`;
+        if (studentId) url += `student_id=${studentId}&`;
+        const records = await api.get(url);
+        renderAttendances(records);
+    }
+
+    function openEdit(id, status) {
+        editId = id;
+        document.getElementById('edit-status').value = status;
+        new bootstrap.Modal(document.getElementById('edit-modal')).show();
+    }
+
+    function openDelete(id, desc) {
+        deleteId = id;
+        document.getElementById('delete-desc').textContent = desc;
+        new bootstrap.Modal(document.getElementById('delete-modal')).show();
+    }
+
+    document.getElementById('apply-filter').addEventListener('click', () => {
+        const classId = document.getElementById('filter-class').value;
+        const lessonSel = document.getElementById('filter-lesson');
+        lessonSel.innerHTML = '<option value="">Все уроки</option>';
+        allLessons.filter(l => !classId || l.class_id === classId).forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = l.id;
+            opt.textContent = `${l.date} — ${subjectsMap[l.subject_id] || ''}`;
+            lessonSel.appendChild(opt);
+        });
+        loadAttendances();
+    });
+
+    document.getElementById('reset-filter').addEventListener('click', () => {
+        document.getElementById('filter-class').value   = '';
+        document.getElementById('filter-student').value = '';
+        document.getElementById('filter-lesson').value  = '';
+        populateLessonFilter();
+        loadAttendances();
+    });
+
+    document.getElementById('create-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            await api.post('/attendances/', {
+                lesson_id:  document.getElementById('create-lesson').value,
+                student_id: document.getElementById('create-student').value,
+                status:     document.getElementById('create-status').value,
+            });
+            bootstrap.Modal.getInstance(document.getElementById('create-modal')).hide();
+            e.target.reset();
+            showAlert('Посещаемость отмечена', 'success');
+            await loadAttendances();
+        } catch (err) { showAlert(err.message); }
+    });
+
+    document.getElementById('edit-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            await api.patch(`/attendances/${editId}`, {
+                status: document.getElementById('edit-status').value,
+            });
+            bootstrap.Modal.getInstance(document.getElementById('edit-modal')).hide();
+            showAlert('Статус обновлён', 'success');
+            await loadAttendances();
+        } catch (err) { showAlert(err.message); }
+    });
+
+    document.getElementById('confirm-delete').addEventListener('click', async () => {
+        try {
+            await api.delete(`/attendances/${deleteId}`);
+            bootstrap.Modal.getInstance(document.getElementById('delete-modal')).hide();
+            showAlert('Запись удалена', 'success');
+            await loadAttendances();
+        } catch (err) { showAlert(err.message); }
+    });
+
+    function populateLessonFilter() {
+        const sel = document.getElementById('filter-lesson');
+        sel.innerHTML = '<option value="">Все уроки</option>';
+        allLessons.forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = l.id;
+            opt.textContent = `${l.date} — ${subjectsMap[l.subject_id] || ''} (${classesMap[l.class_id] || ''})`;
+            sel.appendChild(opt);
+        });
+    }
+
+    async function loadComponents() {
+        const role = sessionStorage.getItem('role');
+        const sidebarFile = role === 'vice_principal' ? 'sidebar-vp' : 'sidebar-admin';
+        const [navHtml, sideHtml] = await Promise.all([
+            fetch('/components/navbar.html').then(r => r.text()),
+            fetch(`/components/${sidebarFile}.html`).then(r => r.text()),
+        ]);
+        document.getElementById('navbar').innerHTML = navHtml;
+        document.getElementById('sidebar').innerHTML = sideHtml;
+        const me = await api.get('/users/me');
+        document.getElementById('navbar-user-name').textContent = `${me.last_name} ${me.first_name}`;
+        document.getElementById('sidebar-user-name').textContent = `${me.last_name} ${me.first_name}`;
+    }
+
+    (async () => {
+        await loadComponents();
+
+        const [users, lessons, subjects, classes] = await Promise.all([
+            api.get('/users/'),
+            api.get('/lessons/'),
+            api.get('/subjects/'),
+            api.get('/classes/'),
+        ]);
+
+        allLessons = lessons;
+        allStudents = users.filter(u => u.role === 'student');
+        users.forEach(u => { usersMap[u.id] = `${u.last_name} ${u.first_name}`; });
+        lessons.forEach(l => { lessonsMap[l.id] = l; });
+        subjects.forEach(s => { subjectsMap[s.id] = s.name; });
+        classes.forEach(c => { classesMap[c.id] = `${c.name} (${c.academic_year})`; });
+
+        const fClass = document.getElementById('filter-class');
+        classes.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = `${c.name} (${c.academic_year})`;
+            fClass.appendChild(opt);
+        });
+
+        const fStudent = document.getElementById('filter-student');
+        allStudents.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.id;
+            opt.textContent = `${u.last_name} ${u.first_name}`;
+            fStudent.appendChild(opt);
+        });
+
+        populateLessonFilter();
+
+        const createLesson = document.getElementById('create-lesson');
+        lessons.forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = l.id;
+            opt.textContent = `${l.date} — ${subjectsMap[l.subject_id] || ''} (${classesMap[l.class_id] || ''})`;
+            createLesson.appendChild(opt);
+        });
+
+        const createStudent = document.getElementById('create-student');
+        allStudents.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.id;
+            opt.textContent = `${u.last_name} ${u.first_name}`;
+            createStudent.appendChild(opt);
+        });
+
+        await loadAttendances();
+    })();
+</script>
+</body>
+</html>

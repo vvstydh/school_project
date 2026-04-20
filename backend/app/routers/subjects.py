@@ -13,7 +13,7 @@ from app.schemas.subject import SubjectCreate, SubjectUpdate, SubjectResponse
 
 router = APIRouter(prefix="/subjects", tags=["Subjects"])
 
-_ADMIN = require_role("admin")
+_ADMIN_VP = require_role("admin", "vice_principal")
 
 
 @router.get("/", response_model=list[SubjectResponse], status_code=200, summary="Список предметов")
@@ -41,7 +41,7 @@ async def get_subject(
 async def create_subject(
     body: SubjectCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(_ADMIN),
+    _: User = Depends(_ADMIN_VP),
 ):
     subject = Subject(name=body.name)
     db.add(subject)
@@ -59,7 +59,7 @@ async def update_subject(
     subject_id: uuid.UUID,
     body: SubjectUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(_ADMIN),
+    _: User = Depends(_ADMIN_VP),
 ):
     subject = await db.get(Subject, subject_id)
     if not subject:
@@ -81,7 +81,7 @@ async def update_subject(
 async def delete_subject(
     subject_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(_ADMIN),
+    _: User = Depends(_ADMIN_VP),
 ):
     subject = await db.get(Subject, subject_id)
     if not subject:

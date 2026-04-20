@@ -80,6 +80,7 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
     email:       EmailStr | None = None
     password:    str | None      = Field(None, min_length=8, max_length=128)
+    role:        RoleType | None = None
     first_name:  str | None      = Field(None, min_length=2, max_length=100, pattern=_NAME_RE)
     last_name:   str | None      = Field(None, min_length=2, max_length=100, pattern=_NAME_RE)
     middle_name: str | None      = Field(None, min_length=2, max_length=100, pattern=_MIDNAME_RE)

@@ -35,6 +35,8 @@
                 <div id="alerts"></div>
                 <div class="row">
                     <div class="col-md-8">
+
+                        <!-- Main user form -->
                         <div class="card">
                             <div class="card-header">
                                 <h3 class="card-title"><i class="fas fa-user-edit mr-2"></i>Данные пользователя</h3>
@@ -71,7 +73,7 @@
                                     </div>
                                     <div class="form-group">
                                         <label>Роль <span class="text-danger">*</span></label>
-                                        <select class="form-control" name="role" required>
+                                        <select class="form-control" name="role" id="role-select" required>
                                             <option value="admin">Администратор</option>
                                             <option value="vice_principal">Завуч</option>
                                             <option value="teacher">Учитель</option>
@@ -96,10 +98,121 @@
                                 </div>
                             </form>
                         </div>
+
+                        <!-- Teacher profile card -->
+                        <div class="card" id="teacher-profile-card" style="display:none">
+                            <div class="card-header bg-info">
+                                <h3 class="card-title text-white"><i class="fas fa-chalkboard-teacher mr-2"></i>Профиль учителя</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label>Преподаваемый предмет <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="teacher-subject">
+                                        <option value="">— Выберите предмет —</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <button type="button" class="btn btn-info" id="save-teacher-profile">
+                                    <i class="fas fa-save"></i> Сохранить профиль
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Student profile card -->
+                        <div class="card" id="student-profile-card" style="display:none">
+                            <div class="card-header bg-success">
+                                <h3 class="card-title text-white"><i class="fas fa-user-graduate mr-2"></i>Профиль ученика</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label>Дата рождения</label>
+                                    <input type="date" class="form-control" id="student-dob">
+                                </div>
+                                <div class="form-group">
+                                    <label>Номер личного дела</label>
+                                    <input type="text" class="form-control" id="student-record" placeholder="Например: ЛД-2024-001">
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <button type="button" class="btn btn-success" id="save-student-profile">
+                                    <i class="fas fa-save"></i> Сохранить профиль
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Parent-children card -->
+                        <div class="card" id="parent-children-card" style="display:none">
+                            <div class="card-header bg-secondary">
+                                <h3 class="card-title text-white"><i class="fas fa-child mr-2"></i>Дети родителя</h3>
+                                <div class="card-tools">
+                                    <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#add-child-modal">
+                                        <i class="fas fa-plus"></i> Добавить ребёнка
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Фамилия Имя</th>
+                                            <th style="width:80px">Действия</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="children-tbody">
+                                        <tr><td colspan="2" class="text-center text-muted py-3">Нет детей</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
         </section>
+    </div>
+
+    <!-- Add child modal -->
+    <div class="modal fade" id="add-child-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title"><i class="fas fa-child mr-2"></i>Добавить ребёнка</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="add-child-form">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Ученик <span class="text-danger">*</span></label>
+                            <select class="form-control" id="child-select" required>
+                                <option value="">— Выберите ученика —</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Добавить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Remove child confirm modal -->
+    <div class="modal fade" id="remove-child-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Удалить связь</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">Удалить связь с ребёнком <strong id="remove-child-name"></strong>?</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-danger" id="confirm-remove-child">Удалить</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
@@ -117,12 +230,19 @@
     const userId = new URLSearchParams(window.location.search).get('id');
     if (!userId) window.location.href = '/pages/admin/users/index.html';
 
+    let currentUser = null;
+    let removeChildId = null;
+    let allStudents = [];
+    let hasTeacherProfile = false;
+    let hasStudentProfile = false;
+
     function showAlert(msg, type = 'danger') {
         document.getElementById('alerts').innerHTML = `
             <div class="alert alert-${type} alert-dismissible fade show">
                 <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle mr-2"></i>${msg}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>`;
+        window.scrollTo(0, 0);
     }
 
     async function loadComponents() {
@@ -137,16 +257,130 @@
         document.getElementById('sidebar-user-name').textContent = `${me.last_name} ${me.first_name}`;
     }
 
-    async function loadUser() {
-        const user = await api.get(`/users/${userId}`);
-        const form = document.getElementById('edit-form');
-        form.last_name.value   = user.last_name;
-        form.first_name.value  = user.first_name;
-        form.middle_name.value = user.middle_name || '';
-        form.email.value       = user.email;
-        form.role.value        = user.role;
-        document.getElementById('is_active').checked = user.is_active;
+    function showRoleCards(role) {
+        document.getElementById('teacher-profile-card').style.display = role === 'teacher' ? '' : 'none';
+        document.getElementById('student-profile-card').style.display = role === 'student' ? '' : 'none';
+        document.getElementById('parent-children-card').style.display = role === 'parent'  ? '' : 'none';
     }
+
+    document.getElementById('role-select').addEventListener('change', function() {
+        showRoleCards(this.value);
+    });
+
+    async function loadUser() {
+        currentUser = await api.get(`/users/${userId}`);
+        const form = document.getElementById('edit-form');
+        form.last_name.value   = currentUser.last_name;
+        form.first_name.value  = currentUser.first_name;
+        form.middle_name.value = currentUser.middle_name || '';
+        form.email.value       = currentUser.email;
+        form.role.value        = currentUser.role;
+        document.getElementById('is_active').checked = currentUser.is_active;
+
+        showRoleCards(currentUser.role);
+
+        // Populate teacher profile
+        if (currentUser.role === 'teacher' && currentUser.teacher_profile) {
+            hasTeacherProfile = true;
+            document.getElementById('teacher-subject').value = currentUser.teacher_profile.subject_id;
+        }
+
+        // Populate student profile
+        if (currentUser.role === 'student' && currentUser.student_profile) {
+            hasStudentProfile = true;
+            const p = currentUser.student_profile;
+            if (p.date_of_birth) document.getElementById('student-dob').value    = p.date_of_birth;
+            if (p.record_number) document.getElementById('student-record').value = p.record_number;
+        }
+
+        // Populate children
+        if (currentUser.role === 'parent') {
+            renderChildren(currentUser.children || []);
+        }
+    }
+
+    function renderChildren(children) {
+        const tbody = document.getElementById('children-tbody');
+        if (!children.length) {
+            tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted py-3">Нет детей</td></tr>';
+            return;
+        }
+        tbody.innerHTML = children.map(c => `<tr>
+            <td>${c.last_name} ${c.first_name} ${c.middle_name || ''}</td>
+            <td>
+                <button class="btn btn-xs btn-danger" onclick="openRemoveChild('${c.id}','${c.last_name} ${c.first_name}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </td>
+        </tr>`).join('');
+
+        // Refresh child-select — exclude already linked
+        const linked = new Set(children.map(c => c.id));
+        const sel = document.getElementById('child-select');
+        sel.innerHTML = '<option value="">— Выберите ученика —</option>';
+        allStudents.filter(u => !linked.has(u.id)).forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.id;
+            opt.textContent = `${u.last_name} ${u.first_name}`;
+            sel.appendChild(opt);
+        });
+    }
+
+    function openRemoveChild(id, name) {
+        removeChildId = id;
+        document.getElementById('remove-child-name').textContent = name;
+        new bootstrap.Modal(document.getElementById('remove-child-modal')).show();
+    }
+
+    document.getElementById('confirm-remove-child').addEventListener('click', async () => {
+        try {
+            await api.delete(`/users/parents/${userId}/children/${removeChildId}`);
+            bootstrap.Modal.getInstance(document.getElementById('remove-child-modal')).hide();
+            showAlert('Связь удалена', 'success');
+            currentUser = await api.get(`/users/${userId}`);
+            renderChildren(currentUser.children || []);
+        } catch (err) { showAlert(err.message); }
+    });
+
+    document.getElementById('add-child-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const childId = document.getElementById('child-select').value;
+        try {
+            await api.post(`/users/parents/${userId}/children/${childId}`, {});
+            bootstrap.Modal.getInstance(document.getElementById('add-child-modal')).hide();
+            showAlert('Ребёнок добавлен', 'success');
+            currentUser = await api.get(`/users/${userId}`);
+            renderChildren(currentUser.children || []);
+        } catch (err) { showAlert(err.message); }
+    });
+
+    document.getElementById('save-teacher-profile').addEventListener('click', async () => {
+        const subjectId = document.getElementById('teacher-subject').value;
+        if (!subjectId) { showAlert('Выберите предмет'); return; }
+        try {
+            if (hasTeacherProfile) {
+                await api.patch(`/users/${userId}/teacher-profile`, { subject_id: subjectId });
+            } else {
+                await api.post(`/users/${userId}/teacher-profile`, { subject_id: subjectId });
+                hasTeacherProfile = true;
+            }
+            showAlert('Профиль учителя сохранён', 'success');
+        } catch (err) { showAlert(err.message); }
+    });
+
+    document.getElementById('save-student-profile').addEventListener('click', async () => {
+        const dob    = document.getElementById('student-dob').value    || null;
+        const record = document.getElementById('student-record').value.trim() || null;
+        try {
+            if (hasStudentProfile) {
+                await api.patch(`/users/${userId}/student-profile`, { date_of_birth: dob, record_number: record });
+            } else {
+                await api.post(`/users/${userId}/student-profile`, { date_of_birth: dob, record_number: record });
+                hasStudentProfile = true;
+            }
+            showAlert('Профиль ученика сохранён', 'success');
+        } catch (err) { showAlert(err.message); }
+    });
 
     document.getElementById('edit-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -169,7 +403,7 @@
         try {
             await api.patch(`/users/${userId}`, body);
             showAlert('Пользователь обновлён', 'success');
-            setTimeout(() => window.location.href = '/pages/admin/users/index.html', 1000);
+            setTimeout(() => window.location.href = '/pages/admin/users/index.html', 1200);
         } catch (err) {
             showAlert(err.message);
             btn.disabled = false;
@@ -179,6 +413,32 @@
 
     (async () => {
         await loadComponents();
+
+        const [users, subjects] = await Promise.all([
+            api.get('/users/'),
+            api.get('/subjects/'),
+        ]);
+
+        allStudents = users.filter(u => u.role === 'student' && u.id !== userId);
+
+        // Populate teacher-subject select
+        const subjectSel = document.getElementById('teacher-subject');
+        subjects.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.name;
+            subjectSel.appendChild(opt);
+        });
+
+        // Populate child-select initially
+        const childSel = document.getElementById('child-select');
+        allStudents.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.id;
+            opt.textContent = `${u.last_name} ${u.first_name}`;
+            childSel.appendChild(opt);
+        });
+
         await loadUser();
     })();
 </script>

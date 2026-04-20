@@ -48,7 +48,7 @@
                                     <th>Класс</th>
                                     <th>Учебный год</th>
                                     <th>Завуч</th>
-                                    <th style="width:120px">Действия</th>
+                                    <th style="width:150px">Действия</th>
                                 </tr>
                             </thead>
                             <tbody id="classes-tbody">
@@ -119,6 +119,9 @@
                 <td>${c.academic_year}</td>
                 <td>${vp}</td>
                 <td>
+                    <a href="/pages/admin/classes/detail.html?id=${c.id}" class="btn btn-xs btn-success mr-1" title="Управление">
+                        <i class="fas fa-users-cog"></i>
+                    </a>
                     <a href="/pages/admin/classes/edit.html?id=${c.id}" class="btn btn-xs btn-info mr-1" title="Редактировать">
                         <i class="fas fa-edit"></i>
                     </a>
@@ -146,9 +149,11 @@
     });
 
     async function loadComponents() {
+        const role = sessionStorage.getItem('role');
+        const sidebarFile = role === 'vice_principal' ? 'sidebar-vp' : 'sidebar-admin';
         const [navHtml, sideHtml] = await Promise.all([
             fetch('/components/navbar.html').then(r => r.text()),
-            fetch('/components/sidebar-admin.html').then(r => r.text()),
+            fetch(`/components/${sidebarFile}.html`).then(r => r.text()),
         ]);
         document.getElementById('navbar').innerHTML = navHtml;
         document.getElementById('sidebar').innerHTML = sideHtml;

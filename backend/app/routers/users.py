@@ -108,6 +108,7 @@ async def update_user(
 
     if is_vp and current_user.id != user_id:
         data.pop("is_active", None)
+        data.pop("role", None)
 
     if "password" in data:
         user.password_hash = hash_password(data.pop("password"))

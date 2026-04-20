@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление классом — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0" id="page-title">Управление классом</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/pages/admin/dashboard.html">Главная</a></li>
+                            <li class="breadcrumb-item"><a href="/pages/admin/classes/index.html">Классы</a></li>
+                            <li class="breadcrumb-item active">Управление</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div id="alerts"></div>
+
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs mb-3" id="class-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#tab-students">
+                            <i class="fas fa-user-graduate mr-1"></i> Ученики
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#tab-teachers">
+                            <i class="fas fa-chalkboard-teacher mr-1"></i> Учителя
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- Students tab -->
+                    <div class="tab-pane fade show active" id="tab-students">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-user-graduate mr-2"></i>Ученики класса</h3>
+                                <div class="card-tools">
+                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#add-student-modal">
+                                        <i class="fas fa-plus"></i> Добавить ученика
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Фамилия Имя</th>
+                                            <th>Учебный год</th>
+                                            <th>Зачислен</th>
+                                            <th style="width:80px">Действия</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="students-tbody">
+                                        <tr><td colspan="5" class="text-center py-4"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Teachers tab -->
+                    <div class="tab-pane fade" id="tab-teachers">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-chalkboard-teacher mr-2"></i>Учителя класса</h3>
+                                <div class="card-tools">
+                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#add-teacher-modal">
+                                        <i class="fas fa-plus"></i> Добавить учителя
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Фамилия Имя</th>
+                                            <th>Предмет</th>
+                                            <th style="width:80px">Действия</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="teachers-tbody">
+                                        <tr><td colspan="4" class="text-center py-4"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Add student modal -->
+    <div class="modal fade" id="add-student-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fas fa-user-plus mr-2"></i>Добавить ученика</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="add-student-form">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Ученик <span class="text-danger">*</span></label>
+                            <select class="form-control" id="student-select" required>
+                                <option value="">— Выберите ученика —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Учебный год <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="student-year" required min="2000" max="2100">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Добавить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add teacher modal -->
+    <div class="modal fade" id="add-teacher-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fas fa-chalkboard-teacher mr-2"></i>Добавить учителя</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="add-teacher-form">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Учитель <span class="text-danger">*</span></label>
+                            <select class="form-control" id="teacher-select" required>
+                                <option value="">— Выберите учителя —</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Добавить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Remove student confirm modal -->
+    <div class="modal fade" id="remove-student-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-user-minus mr-2"></i>Удалить ученика из класса</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">Удалить <strong id="remove-student-name"></strong> из класса?</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-danger" id="confirm-remove-student">Удалить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Remove teacher confirm modal -->
+    <div class="modal fade" id="remove-teacher-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-user-minus mr-2"></i>Открепить учителя</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">Открепить <strong id="remove-teacher-name"></strong> от класса?</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-danger" id="confirm-remove-teacher">Открепить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script>
+    requireAuth('admin', 'vice_principal');
+
+    const classId = new URLSearchParams(window.location.search).get('id');
+    if (!classId) window.location.href = '/pages/admin/classes/index.html';
+
+    let usersMap = {};
+    let subjectsMap = {};
+    let removeStudentId = null;
+    let removeTeacherId = null;
+    let enrolledStudentIds = new Set();
+    let assignedTeacherIds = new Set();
+
+    function showAlert(msg, type = 'danger') {
+        document.getElementById('alerts').innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show">
+                <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle mr-2"></i>${msg}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
+        window.scrollTo(0, 0);
+    }
+
+    async function loadStudents() {
+        const records = await api.get(`/classes/${classId}/students`);
+        enrolledStudentIds = new Set(records.map(r => r.student_id));
+        const tbody = document.getElementById('students-tbody');
+        if (!records.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">Нет учеников</td></tr>';
+            return;
+        }
+        tbody.innerHTML = records.map((r, i) => `<tr>
+            <td>${i + 1}</td>
+            <td>${usersMap[r.student_id] || r.student_id}</td>
+            <td>${r.academic_year}</td>
+            <td>${r.enrolled_at || '—'}</td>
+            <td>
+                <button class="btn btn-xs btn-danger" onclick="openRemoveStudent('${r.student_id}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </td>
+        </tr>`).join('');
+    }
+
+    async function loadTeachers() {
+        const records = await api.get(`/classes/${classId}/teachers`);
+        assignedTeacherIds = new Set(records.map(r => r.teacher_id));
+        const tbody = document.getElementById('teachers-tbody');
+        if (!records.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">Нет учителей</td></tr>';
+            return;
+        }
+        tbody.innerHTML = records.map((r, i) => {
+            const teacher = usersMap[r.teacher_id] || r.teacher_id;
+            const teacherUser = allUsers.find(u => u.id === r.teacher_id);
+            const subjectId = teacherUser?.teacher_profile?.subject_id;
+            const subjectName = subjectId ? (subjectsMap[subjectId] || '—') : '—';
+            return `<tr>
+                <td>${i + 1}</td>
+                <td>${teacher}</td>
+                <td>${subjectName}</td>
+                <td>
+                    <button class="btn btn-xs btn-danger" onclick="openRemoveTeacher('${r.teacher_id}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    function openRemoveStudent(id) {
+        removeStudentId = id;
+        document.getElementById('remove-student-name').textContent = usersMap[id] || id;
+        new bootstrap.Modal(document.getElementById('remove-student-modal')).show();
+    }
+
+    function openRemoveTeacher(id) {
+        removeTeacherId = id;
+        document.getElementById('remove-teacher-name').textContent = usersMap[id] || id;
+        new bootstrap.Modal(document.getElementById('remove-teacher-modal')).show();
+    }
+
+    document.getElementById('confirm-remove-student').addEventListener('click', async () => {
+        try {
+            await api.delete(`/classes/${classId}/students/${removeStudentId}`);
+            bootstrap.Modal.getInstance(document.getElementById('remove-student-modal')).hide();
+            showAlert('Ученик удалён из класса', 'success');
+            await Promise.all([loadStudents(), refreshStudentSelect()]);
+        } catch (err) { showAlert(err.message); }
+    });
+
+    document.getElementById('confirm-remove-teacher').addEventListener('click', async () => {
+        try {
+            await api.delete(`/classes/${classId}/teachers/${removeTeacherId}`);
+            bootstrap.Modal.getInstance(document.getElementById('remove-teacher-modal')).hide();
+            showAlert('Учитель откреплён', 'success');
+            await Promise.all([loadTeachers(), refreshTeacherSelect()]);
+        } catch (err) { showAlert(err.message); }
+    });
+
+    function refreshStudentSelect() {
+        const sel = document.getElementById('student-select');
+        sel.innerHTML = '<option value="">— Выберите ученика —</option>';
+        Object.entries(usersMap).forEach(([id, name]) => {
+            if (allUsers.find(u => u.id === id && u.role === 'student') && !enrolledStudentIds.has(id)) {
+                const opt = document.createElement('option');
+                opt.value = id;
+                opt.textContent = name;
+                sel.appendChild(opt);
+            }
+        });
+    }
+
+    function refreshTeacherSelect() {
+        const sel = document.getElementById('teacher-select');
+        sel.innerHTML = '<option value="">— Выберите учителя —</option>';
+        allUsers.filter(u => u.role === 'teacher' && !assignedTeacherIds.has(u.id)).forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.id;
+            const subject = u.teacher_profile ? (subjectsMap[u.teacher_profile.subject_id] || '') : '';
+            opt.textContent = `${usersMap[u.id]}${subject ? ' (' + subject + ')' : ''}`;
+            sel.appendChild(opt);
+        });
+    }
+
+    document.getElementById('add-student-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            const studentId = document.getElementById('student-select').value;
+            const year = parseInt(document.getElementById('student-year').value);
+            await api.post(`/classes/${classId}/students`, {
+                class_id: classId,
+                student_id: studentId,
+                academic_year: year,
+            });
+            bootstrap.Modal.getInstance(document.getElementById('add-student-modal')).hide();
+            e.target.reset();
+            showAlert('Ученик добавлен в класс', 'success');
+            await Promise.all([loadStudents(), refreshStudentSelect()]);
+        } catch (err) { showAlert(err.message); }
+    });
+
+    document.getElementById('add-teacher-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            const teacherId = document.getElementById('teacher-select').value;
+            await api.post(`/classes/${classId}/teachers`, {
+                class_id: classId,
+                teacher_id: teacherId,
+            });
+            bootstrap.Modal.getInstance(document.getElementById('add-teacher-modal')).hide();
+            e.target.reset();
+            showAlert('Учитель добавлен в класс', 'success');
+            await Promise.all([loadTeachers(), refreshTeacherSelect()]);
+        } catch (err) { showAlert(err.message); }
+    });
+
+    let allUsers = [];
+    let allSubjects = [];
+
+    async function loadComponents() {
+        const role = sessionStorage.getItem('role');
+        const sidebarFile = role === 'vice_principal' ? 'sidebar-vp' : 'sidebar-admin';
+        const [navHtml, sideHtml] = await Promise.all([
+            fetch('/components/navbar.html').then(r => r.text()),
+            fetch(`/components/${sidebarFile}.html`).then(r => r.text()),
+        ]);
+        document.getElementById('navbar').innerHTML = navHtml;
+        document.getElementById('sidebar').innerHTML = sideHtml;
+        const me = await api.get('/users/me');
+        document.getElementById('navbar-user-name').textContent = `${me.last_name} ${me.first_name}`;
+        document.getElementById('sidebar-user-name').textContent = `${me.last_name} ${me.first_name}`;
+    }
+
+    (async () => {
+        await loadComponents();
+
+        const [classData, users, subjects] = await Promise.all([
+            api.get(`/classes/${classId}`),
+            api.get('/users/'),
+            api.get('/subjects/'),
+        ]);
+
+        document.getElementById('page-title').textContent = `Класс ${classData.name} (${classData.academic_year})`;
+        document.title = `Класс ${classData.name} — Школьный журнал`;
+
+        allUsers = users;
+        allSubjects = subjects;
+        users.forEach(u => { usersMap[u.id] = `${u.last_name} ${u.first_name}`; });
+        subjects.forEach(s => { subjectsMap[s.id] = s.name; });
+
+        document.getElementById('student-year').value = classData.academic_year;
+
+        await Promise.all([loadStudents(), loadTeachers()]);
+        refreshStudentSelect();
+        refreshTeacherSelect();
+    })();
+</script>
+</body>
+</html>

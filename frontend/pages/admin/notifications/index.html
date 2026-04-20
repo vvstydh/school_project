@@ -164,9 +164,11 @@
     });
 
     async function loadComponents() {
+        const role = sessionStorage.getItem('role');
+        const sidebarFile = role === 'vice_principal' ? 'sidebar-vp' : 'sidebar-admin';
         const [navHtml, sideHtml] = await Promise.all([
             fetch('/components/navbar.html').then(r => r.text()),
-            fetch('/components/sidebar-admin.html').then(r => r.text()),
+            fetch(`/components/${sidebarFile}.html`).then(r => r.text()),
         ]);
         document.getElementById('navbar').innerHTML = navHtml;
         document.getElementById('sidebar').innerHTML = sideHtml;
