@@ -14,9 +14,9 @@ pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 async def main():
-    conn = await asyncpg.connect(
-        "postgresql://postgres:1234@db:5432/school"
-    )
+    import os
+    db_url = os.environ["DATABASE_URL"].replace("postgresql+asyncpg://", "postgresql://")
+    conn = await asyncpg.connect(db_url)
 
     exists = await conn.fetchval("SELECT id FROM users WHERE email = $1", EMAIL)
     if exists:
