@@ -2,7 +2,7 @@ services:
 
   db:
     image: postgres:16
-    container_name: school_journal_db
+    container_name: school_project_db
     restart: unless-stopped
     env_file:
       - .env
@@ -23,7 +23,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: school_journal_api
+    container_name: school_project_api
     restart: unless-stopped
     env_file:
       - .env
@@ -42,7 +42,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: school_journal_frontend
+    container_name: school_project_frontend
     restart: unless-stopped
     ports:
       - "80:80"
