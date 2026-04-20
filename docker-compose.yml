@@ -1,0 +1,61 @@
+services:
+
+  db:
+    image: postgres:16
+    container_name: school_journal_db
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend_net
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: school_journal_api
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend/app:/app/app
+    networks:
+      - backend_net
+      - frontend_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: school_journal_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - frontend_net
+
+networks:
+  backend_net:
+    driver: bridge
+  frontend_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
