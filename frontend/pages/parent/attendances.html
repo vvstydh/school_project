@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Посещаемость — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0">Посещаемость</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/pages/parent/dashboard.html">Главная</a></li>
+                            <li class="breadcrumb-item active">Посещаемость</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div id="alerts"></div>
+
+                <!-- Статистика по детям -->
+                <div id="stats-cards" class="row"></div>
+
+                <!-- Фильтры -->
+                <div class="card card-outline card-primary">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label>Ребёнок</label>
+                                <select class="form-control" id="filter-child">
+                                    <option value="">Все дети</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label>Статус</label>
+                                <select class="form-control" id="filter-status">
+                                    <option value="">Все</option>
+                                    <option value="present">Присутствовал</option>
+                                    <option value="absent">Отсутствовал</option>
+                                    <option value="late">Опоздал</option>
+                                    <option value="excused">Уважительная</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-clipboard-check mr-2"></i>История посещаемости</h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr><th>Ребёнок</th><th>Дата</th><th>Предмет</th><th>Тема</th><th>Статус</th></tr>
+                            </thead>
+                            <tbody id="att-tbody">
+                                <tr><td colspan="5" class="text-center py-4"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer text-muted" id="att-footer"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script src="/js/pages/parent/common.js"></script>
+<script>
+    requireAuth('parent');
+
+    let allAtts = [], lessonsMap = {}, childMap = {};
+
+    function renderAtts(atts) {
+        const tbody = document.getElementById('att-tbody');
+        document.getElementById('att-footer').textContent = `Показано: ${atts.length} записей`;
+        const sorted = [...atts].sort((a, b) => {
+            const la = lessonsMap[a.lesson_id], lb = lessonsMap[b.lesson_id];
+            return (lb?.date || '').localeCompare(la?.date || '');
+        });
+        if (!sorted.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Нет записей</td></tr>';
+            return;
+        }
+        tbody.innerHTML = sorted.map(a => {
+            const l = lessonsMap[a.lesson_id] || {};
+            const info = ATTENDANCE_LABELS[a.status];
+            return `<tr>
+                <td>${childMap[a.student_id] || '—'}</td>
+                <td>${l.date || '—'}</td>
+                <td>${l.subject_name || '—'}</td>
+                <td><small>${l.topic || '—'}</small></td>
+                <td><span class="badge badge-${info.color}">${info.label}</span></td>
+            </tr>`;
+        }).join('');
+    }
+
+    function applyFilters() {
+        const child  = document.getElementById('filter-child').value;
+        const status = document.getElementById('filter-status').value;
+        let f = allAtts;
+        if (child)  f = f.filter(a => a.student_id === child);
+        if (status) f = f.filter(a => a.status === status);
+        renderAtts(f);
+    }
+
+    document.getElementById('filter-child').addEventListener('change', applyFilters);
+    document.getElementById('filter-status').addEventListener('change', applyFilters);
+
+    (async () => {
+        const me = await loadParentComponents('attendances');
+        const children = me.children || [];
+
+        if (!children.length) {
+            document.getElementById('alerts').innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle mr-2"></i>Нет привязанных детей.</div>';
+            document.getElementById('att-tbody').innerHTML = '<tr><td colspan="5" class="text-center text-muted">Нет данных</td></tr>';
+            return;
+        }
+
+        const sel = document.getElementById('filter-child');
+        children.forEach(c => {
+            childMap[c.id] = `${c.last_name} ${c.first_name}`;
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = `${c.last_name} ${c.first_name}`;
+            sel.appendChild(opt);
+        });
+
+        const [attsArr, lessons] = await Promise.all([
+            Promise.all(children.map(c => api.get(`/attendances/?student_id=${c.id}`))),
+            api.get('/lessons/'),
+        ]);
+
+        lessons.forEach(l => { lessonsMap[l.id] = l; });
+        allAtts = attsArr.flat();
+
+        // Статистика карточки
+        const bgMap = { present: 'bg-success', absent: 'bg-danger', late: 'bg-warning', excused: 'bg-info' };
+        const statsRow = document.getElementById('stats-cards');
+        statsRow.innerHTML = children.map((c, i) => {
+            const cAtts = attsArr[i];
+            const absent = cAtts.filter(a => a.status === 'absent').length;
+            const total  = cAtts.length;
+            const pct    = total ? Math.round((cAtts.filter(a => a.status === 'present').length / total) * 100) : 100;
+            return `<div class="col-lg-3 col-6">
+                <div class="small-box ${absent > 5 ? 'bg-danger' : absent > 2 ? 'bg-warning' : 'bg-success'}">
+                    <div class="inner">
+                        <h3>${pct}%</h3>
+                        <p>${c.last_name} ${c.first_name}</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-clipboard-check"></i></div>
+                    <span class="small-box-footer">Пропусков: ${absent} из ${total}</span>
+                </div>
+            </div>`;
+        }).join('');
+
+        applyFilters();
+    })();
+</script>
+</body>
+</html>

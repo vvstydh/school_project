@@ -41,6 +41,9 @@ docker compose up -d api
 # перезапуск API после изменений
 docker compose up -d --build api
 
+# перезапуск Frontend после изменений
+docker compose up -d --build frontend
+
 # остановить все контейнеры
 docker compose down
 

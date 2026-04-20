@@ -57,8 +57,12 @@ async def get_user(
 async def create_user(
     body: UserCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(_ADMIN),
+    current_user: User = Depends(_ADMIN_VP),
 ):
+    if current_user.role == "vice_principal" and body.role == "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Завуч не может создавать администраторов")
+
     result = await db.execute(select(User).where(User.email == body.email))
     if result.scalar_one_or_none():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email уже занят")
@@ -84,14 +88,27 @@ async def update_user(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if current_user.role != "admin" and current_user.id != user_id:
+    is_vp = current_user.role == "vice_principal"
+    is_admin = current_user.role == "admin"
+
+    if not is_admin and not is_vp and current_user.id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав")
+
+    if is_vp and current_user.id != user_id:
+        data = body.model_dump(exclude_unset=True)
+        if "is_active" in data:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="Завуч не может деактивировать аккаунты")
 
     user = await db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден")
 
     data = body.model_dump(exclude_unset=True)
+
+    if is_vp and current_user.id != user_id:
+        data.pop("is_active", None)
+
     if "password" in data:
         user.password_hash = hash_password(data.pop("password"))
     if "email" in data:
@@ -113,7 +130,7 @@ async def update_user(
 async def delete_user(
     user_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(_ADMIN),
+    _: User = Depends(_ADMIN_VP),
 ):
     user = await db.get(User, user_id)
     if not user:
@@ -130,7 +147,7 @@ async def create_teacher_profile(
     user_id: uuid.UUID,
     body: TeacherProfileCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(_ADMIN),
+    _: User = Depends(_ADMIN_VP),
 ):
     user = await db.get(User, user_id)
     if not user:
@@ -159,7 +176,7 @@ async def update_teacher_profile(
     user_id: uuid.UUID,
     body: TeacherProfileUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(_ADMIN),
+    _: User = Depends(_ADMIN_VP),
 ):
     result = await db.execute(select(TeacherProfile).where(TeacherProfile.user_id == user_id))
     profile = result.scalar_one_or_none()
@@ -186,7 +203,7 @@ async def create_student_profile(
     user_id: uuid.UUID,
     body: StudentProfileCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(_ADMIN),
+    _: User = Depends(_ADMIN_VP),
 ):
     user = await db.get(User, user_id)
     if not user:
@@ -219,7 +236,7 @@ async def update_student_profile(
     user_id: uuid.UUID,
     body: StudentProfileUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(_ADMIN),
+    _: User = Depends(_ADMIN_VP),
 ):
     result = await db.execute(select(StudentProfile).where(StudentProfile.user_id == user_id))
     profile = result.scalar_one_or_none()
@@ -246,7 +263,7 @@ async def add_child(
     parent_id: uuid.UUID,
     student_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(_ADMIN),
+    _: User = Depends(_ADMIN_VP),
 ):
     parent = await db.get(User, parent_id)
     student = await db.get(User, student_id)
@@ -278,7 +295,7 @@ async def remove_child(
     parent_id: uuid.UUID,
     student_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(_ADMIN),
+    _: User = Depends(_ADMIN_VP),
 ):
     result = await db.execute(
         select(parent_student).where(

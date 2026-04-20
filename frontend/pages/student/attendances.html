@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Посещаемость — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0">Посещаемость</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/pages/student/dashboard.html">Главная</a></li>
+                            <li class="breadcrumb-item active">Посещаемость</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div id="alerts"></div>
+
+                <!-- Статистика -->
+                <div class="row">
+                    <div class="col-lg-3 col-6">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-success"><i class="fas fa-check"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Присутствовал</span>
+                                <span class="info-box-number" id="stat-present">—</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-6">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-danger"><i class="fas fa-times"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Отсутствовал</span>
+                                <span class="info-box-number" id="stat-absent">—</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-6">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-warning"><i class="fas fa-clock"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Опоздал</span>
+                                <span class="info-box-number" id="stat-late">—</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-6">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-info"><i class="fas fa-file-alt"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Уважительная</span>
+                                <span class="info-box-number" id="stat-excused">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Таблица -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-clipboard-check mr-2"></i>История посещаемости</h3>
+                        <div class="card-tools">
+                            <select class="form-control form-control-sm" id="filter-status" style="width:170px">
+                                <option value="">Все статусы</option>
+                                <option value="present">Присутствовал</option>
+                                <option value="absent">Отсутствовал</option>
+                                <option value="late">Опоздал</option>
+                                <option value="excused">Уважительная</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr><th>Дата</th><th>Предмет</th><th>Тема</th><th>Статус</th></tr>
+                            </thead>
+                            <tbody id="att-tbody">
+                                <tr><td colspan="4" class="text-center py-4"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer text-muted" id="att-footer"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script src="/js/pages/student/common.js"></script>
+<script>
+    requireAuth('student');
+
+    let allAtts = [], lessonsMap = {};
+
+    function renderAtts(atts) {
+        const tbody = document.getElementById('att-tbody');
+        document.getElementById('att-footer').textContent = `Показано: ${atts.length} записей`;
+        const sorted = [...atts].sort((a, b) => {
+            const la = lessonsMap[a.lesson_id], lb = lessonsMap[b.lesson_id];
+            return (lb?.date || '').localeCompare(la?.date || '');
+        });
+        if (!sorted.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">Нет записей</td></tr>';
+            return;
+        }
+        tbody.innerHTML = sorted.map(a => {
+            const l = lessonsMap[a.lesson_id] || {};
+            const info = ATTENDANCE_LABELS[a.status];
+            return `<tr>
+                <td>${l.date || '—'}</td>
+                <td>${l.subject_name || '—'}</td>
+                <td>${l.topic || '<span class="text-muted">—</span>'}</td>
+                <td><span class="badge badge-${info.color}">${info.label}</span></td>
+            </tr>`;
+        }).join('');
+    }
+
+    document.getElementById('filter-status').addEventListener('change', function () {
+        const v = this.value;
+        renderAtts(v ? allAtts.filter(a => a.status === v) : allAtts);
+    });
+
+    (async () => {
+        const me = await loadStudentComponents('attendances');
+
+        const [atts, lessons] = await Promise.all([
+            api.get(`/attendances/?student_id=${me.id}`),
+            api.get('/lessons/'),
+        ]);
+
+        lessons.forEach(l => { lessonsMap[l.id] = l; });
+        allAtts = atts;
+
+        // Статистика
+        const counts = { present: 0, absent: 0, late: 0, excused: 0 };
+        atts.forEach(a => { if (counts[a.status] !== undefined) counts[a.status]++; });
+        Object.entries(counts).forEach(([s, n]) => {
+            document.getElementById(`stat-${s}`).textContent = n;
+        });
+
+        renderAtts(atts);
+    })();
+</script>
+</body>
+</html>

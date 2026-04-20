@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Посещаемость — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0">Посещаемость</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/pages/teacher/dashboard.html">Главная</a></li>
+                            <li class="breadcrumb-item active">Посещаемость</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div id="alerts"></div>
+
+                <!-- Статистика -->
+                <div class="row mb-3" id="stats-row" style="display:none!important">
+                    <div class="col-3">
+                        <div class="info-box bg-success">
+                            <span class="info-box-icon"><i class="fas fa-check"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Присутствовал</span>
+                                <span class="info-box-number" id="stat-present">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="info-box bg-danger">
+                            <span class="info-box-icon"><i class="fas fa-times"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Отсутствовал</span>
+                                <span class="info-box-number" id="stat-absent">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="info-box bg-warning">
+                            <span class="info-box-icon"><i class="fas fa-clock"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Опоздал</span>
+                                <span class="info-box-number" id="stat-late">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="info-box bg-info">
+                            <span class="info-box-icon"><i class="fas fa-file-alt"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Уважительная</span>
+                                <span class="info-box-number" id="stat-excused">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-clipboard-check mr-2"></i>Журнал посещаемости</h3>
+                        <div class="card-tools d-flex align-items-center">
+                            <select class="form-control form-control-sm mr-2" id="filter-lesson" style="width:240px">
+                                <option value="">Все уроки</option>
+                            </select>
+                            <select class="form-control form-control-sm" id="filter-status" style="width:160px">
+                                <option value="">Все статусы</option>
+                                <option value="present">Присутствовал</option>
+                                <option value="absent">Отсутствовал</option>
+                                <option value="late">Опоздал</option>
+                                <option value="excused">Уважительная</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Ученик</th>
+                                    <th>Урок / Дата</th>
+                                    <th>Статус</th>
+                                    <th style="width:70px">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="att-tbody">
+                                <tr><td colspan="4" class="text-center py-4"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer text-muted" id="att-count"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Edit modal -->
+    <div class="modal fade" id="edit-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title"><i class="fas fa-edit mr-2"></i>Изменить статус</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="edit-form">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Статус <span class="text-danger">*</span></label>
+                            <select class="form-control" id="edit-status" required>
+                                <option value="present">Присутствовал</option>
+                                <option value="absent">Отсутствовал</option>
+                                <option value="late">Опоздал</option>
+                                <option value="excused">Уважительная причина</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-info"><i class="fas fa-save"></i> Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script src="/js/pages/teacher/common.js"></script>
+<script>
+    requireAuth('teacher');
+
+    let allAtts = [], lessonsMap = {}, usersMap = {}, editId = null;
+
+    function renderAtts(atts) {
+        const tbody = document.getElementById('att-tbody');
+        document.getElementById('att-count').textContent = `Показано: ${atts.length} записей`;
+
+        // Статистика
+        document.getElementById('stat-present').textContent = atts.filter(a => a.status === 'present').length;
+        document.getElementById('stat-absent').textContent  = atts.filter(a => a.status === 'absent').length;
+        document.getElementById('stat-late').textContent    = atts.filter(a => a.status === 'late').length;
+        document.getElementById('stat-excused').textContent = atts.filter(a => a.status === 'excused').length;
+        document.getElementById('stats-row').style.display = atts.length ? '' : 'none';
+
+        if (!atts.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">Записей не найдено</td></tr>';
+            return;
+        }
+        tbody.innerHTML = atts.map(a => {
+            const lesson = lessonsMap[a.lesson_id] || {};
+            const info = ATTENDANCE_LABELS[a.status];
+            return `<tr>
+                <td>${usersMap[a.student_id] || '—'}</td>
+                <td>${lesson.date || '—'} ${lesson.topic ? `<small class="text-muted">/ ${lesson.topic}</small>` : ''}</td>
+                <td><span class="badge badge-${info.color}">${info.label}</span></td>
+                <td>
+                    <button class="btn btn-xs btn-info" onclick="openEdit('${a.id}','${a.status}')"><i class="fas fa-edit"></i></button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    function applyFilters() {
+        const lesson = document.getElementById('filter-lesson').value;
+        const status = document.getElementById('filter-status').value;
+        let filtered = allAtts;
+        if (lesson) filtered = filtered.filter(a => a.lesson_id === lesson);
+        if (status) filtered = filtered.filter(a => a.status === status);
+        renderAtts(filtered);
+    }
+
+    document.getElementById('filter-lesson').addEventListener('change', applyFilters);
+    document.getElementById('filter-status').addEventListener('change', applyFilters);
+
+    function openEdit(id, status) {
+        editId = id;
+        document.getElementById('edit-status').value = status;
+        new bootstrap.Modal(document.getElementById('edit-modal')).show();
+    }
+
+    document.getElementById('edit-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            await api.patch(`/attendances/${editId}`, { status: document.getElementById('edit-status').value });
+            bootstrap.Modal.getInstance(document.getElementById('edit-modal')).hide();
+            showAlert('Статус обновлён', 'success');
+            await loadData();
+        } catch (err) { showAlert(err.message); }
+    });
+
+    async function loadData() {
+        const [atts, lessons, users] = await Promise.all([
+            api.get('/attendances/'),
+            api.get('/lessons/'),
+            api.get('/users/'),
+        ]);
+
+        lessonsMap = {};
+        lessons.forEach(l => { lessonsMap[l.id] = l; });
+        usersMap = {};
+        users.forEach(u => { usersMap[u.id] = `${u.last_name} ${u.first_name}`; });
+
+        const sel = document.getElementById('filter-lesson');
+        const cur = sel.value;
+        sel.innerHTML = '<option value="">Все уроки</option>';
+        lessons.sort((a, b) => b.date.localeCompare(a.date)).forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = l.id;
+            opt.textContent = `${l.date} — ${l.class_name || ''}${l.topic ? ' / ' + l.topic : ''}`;
+            sel.appendChild(opt);
+        });
+        sel.value = cur;
+
+        allAtts = atts;
+        applyFilters();
+    }
+
+    (async () => {
+        await loadTeacherComponents('attendances');
+        await loadData();
+    })();
+</script>
+</body>
+</html>

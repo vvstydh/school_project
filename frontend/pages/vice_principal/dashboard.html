@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0">Главная</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item active">Главная</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-info">
+                            <div class="inner"><h3 id="count-users">—</h3><p>Пользователей</p></div>
+                            <div class="icon"><i class="fas fa-users"></i></div>
+                            <a href="/pages/vice_principal/users/index.html" class="small-box-footer">Подробнее <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-success">
+                            <div class="inner"><h3 id="count-classes">—</h3><p>Классов</p></div>
+                            <div class="icon"><i class="fas fa-chalkboard"></i></div>
+                            <a href="/pages/admin/classes/index.html" class="small-box-footer">Подробнее <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-warning">
+                            <div class="inner"><h3 id="count-subjects">—</h3><p>Предметов</p></div>
+                            <div class="icon"><i class="fas fa-book"></i></div>
+                            <a href="/pages/admin/subjects/index.html" class="small-box-footer">Подробнее <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-danger">
+                            <div class="inner"><h3 id="count-students">—</h3><p>Учеников</p></div>
+                            <div class="icon"><i class="fas fa-user-graduate"></i></div>
+                            <a href="/pages/vice_principal/users/index.html" class="small-box-footer">Подробнее <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-users mr-2"></i>Последние пользователи</h3>
+                                <div class="card-tools">
+                                    <a href="/pages/vice_principal/users/index.html" class="btn btn-sm btn-primary">Все пользователи</a>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <table class="table table-hover">
+                                    <thead><tr><th>ФИО</th><th>Email</th><th>Роль</th><th>Статус</th></tr></thead>
+                                    <tbody id="recent-users">
+                                        <tr><td colspan="4" class="text-center py-3"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header"><h3 class="card-title"><i class="fas fa-chart-pie mr-2"></i>По ролям</h3></div>
+                            <div class="card-body p-0">
+                                <ul class="list-group list-group-flush" id="role-stats">
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span><i class="fas fa-user-tie text-warning mr-2"></i>Завучи</span>
+                                        <span class="badge badge-warning" id="role-vp">—</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span><i class="fas fa-chalkboard-teacher text-info mr-2"></i>Учителя</span>
+                                        <span class="badge badge-info" id="role-teacher">—</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span><i class="fas fa-user-graduate text-success mr-2"></i>Ученики</span>
+                                        <span class="badge badge-success" id="role-student">—</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span><i class="fas fa-users text-secondary mr-2"></i>Родители</span>
+                                        <span class="badge badge-secondary" id="role-parent">—</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script src="/js/pages/vice_principal/common.js"></script>
+<script>
+    requireAuth('vice_principal');
+
+    (async () => {
+        await loadVPComponents('dashboard');
+
+        const [users, classes, subjects] = await Promise.all([
+            api.get('/users/'),
+            api.get('/classes/'),
+            api.get('/subjects/'),
+        ]);
+
+        document.getElementById('count-users').textContent = users.length;
+        document.getElementById('count-classes').textContent = classes.length;
+        document.getElementById('count-subjects').textContent = subjects.length;
+        document.getElementById('count-students').textContent = users.filter(u => u.role === 'student').length;
+
+        const counts = { vice_principal: 0, teacher: 0, student: 0, parent: 0 };
+        users.forEach(u => { if (counts[u.role] !== undefined) counts[u.role]++; });
+        document.getElementById('role-vp').textContent      = counts.vice_principal;
+        document.getElementById('role-teacher').textContent = counts.teacher;
+        document.getElementById('role-student').textContent = counts.student;
+        document.getElementById('role-parent').textContent  = counts.parent;
+
+        const recent = [...users].reverse().slice(0, 5);
+        document.getElementById('recent-users').innerHTML = recent.map(u => {
+            const r = ROLE_LABELS[u.role] || u.role;
+            const c = ROLE_COLORS[u.role] || 'secondary';
+            return `<tr>
+                <td>${u.last_name} ${u.first_name} ${u.middle_name || ''}</td>
+                <td>${u.email}</td>
+                <td><span class="badge badge-${c}">${r}</span></td>
+                <td>${u.is_active
+                    ? '<span class="badge badge-success">Активен</span>'
+                    : '<span class="badge badge-secondary">Отключён</span>'}</td>
+            </tr>`;
+        }).join('');
+    })();
+</script>
+</body>
+</html>

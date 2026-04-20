@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0">Главная</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item active">Главная</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-info">
+                            <div class="inner">
+                                <h3 id="count-lessons">—</h3>
+                                <p>Уроков всего</p>
+                            </div>
+                            <div class="icon"><i class="fas fa-calendar-alt"></i></div>
+                            <a href="/pages/teacher/lessons/index.html" class="small-box-footer">Подробнее <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-success">
+                            <div class="inner">
+                                <h3 id="count-today">—</h3>
+                                <p>Уроков сегодня</p>
+                            </div>
+                            <div class="icon"><i class="fas fa-clock"></i></div>
+                            <a href="/pages/teacher/lessons/index.html" class="small-box-footer">Подробнее <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-warning">
+                            <div class="inner">
+                                <h3 id="count-grades">—</h3>
+                                <p>Оценок выставлено</p>
+                            </div>
+                            <div class="icon"><i class="fas fa-star"></i></div>
+                            <a href="/pages/teacher/grades/index.html" class="small-box-footer">Подробнее <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-danger">
+                            <div class="inner">
+                                <h3 id="count-absent">—</h3>
+                                <p>Отсутствий</p>
+                            </div>
+                            <div class="icon"><i class="fas fa-user-times"></i></div>
+                            <a href="/pages/teacher/attendances/index.html" class="small-box-footer">Подробнее <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-calendar-alt mr-2"></i>Ближайшие уроки</h3>
+                                <div class="card-tools">
+                                    <a href="/pages/teacher/lessons/index.html" class="btn btn-sm btn-primary">Все уроки</a>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr><th>Дата</th><th>Класс</th><th>Тема</th><th></th></tr>
+                                    </thead>
+                                    <tbody id="recent-lessons">
+                                        <tr><td colspan="4" class="text-center py-3"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-bell mr-2"></i>Уведомления</h3>
+                            </div>
+                            <div class="card-body p-0" id="notif-list">
+                                <div class="text-center py-3"><i class="fas fa-spinner fa-spin"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script src="/js/pages/teacher/common.js"></script>
+<script>
+    requireAuth('teacher');
+
+    (async () => {
+        const me = await loadTeacherComponents('dashboard');
+
+        const [lessons, grades, attendances, notifs] = await Promise.all([
+            api.get('/lessons/'),
+            api.get('/grades/'),
+            api.get('/attendances/'),
+            api.get('/notifications/'),
+        ]);
+
+        const today = new Date().toISOString().slice(0, 10);
+        document.getElementById('count-lessons').textContent = lessons.length;
+        document.getElementById('count-today').textContent = lessons.filter(l => l.date === today).length;
+        document.getElementById('count-grades').textContent = grades.length;
+        document.getElementById('count-absent').textContent = attendances.filter(a => a.status === 'absent').length;
+
+        // Ближайшие уроки (последние 5 по дате)
+        const sorted = [...lessons].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
+        const tbody = document.getElementById('recent-lessons');
+        if (!sorted.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Уроков нет</td></tr>';
+        } else {
+            tbody.innerHTML = sorted.map(l => `<tr>
+                <td>${l.date}</td>
+                <td><span class="badge badge-info">${l.class_name || '—'}</span></td>
+                <td>${l.topic || '<span class="text-muted">—</span>'}</td>
+                <td><a href="/pages/teacher/lessons/detail.html?id=${l.id}" class="btn btn-xs btn-outline-primary"><i class="fas fa-eye"></i></a></td>
+            </tr>`).join('');
+        }
+
+        // Уведомления
+        const notifContainer = document.getElementById('notif-list');
+        const unread = notifs.filter(n => !n.is_read).slice(0, 5);
+        if (!unread.length) {
+            notifContainer.innerHTML = '<div class="text-center text-muted py-3">Нет новых уведомлений</div>';
+        } else {
+            notifContainer.innerHTML = unread.map(n => `
+                <div class="d-flex p-3 border-bottom bg-light">
+                    <i class="fas fa-bell text-primary mr-3 mt-1"></i>
+                    <div>
+                        <div><strong>${n.title}</strong></div>
+                        <small class="text-muted">${n.body.slice(0, 80)}${n.body.length > 80 ? '...' : ''}</small>
+                    </div>
+                </div>`).join('');
+        }
+    })();
+</script>
+</body>
+</html>

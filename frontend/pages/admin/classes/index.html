@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Классы — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0">Классы</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/pages/admin/dashboard.html">Главная</a></li>
+                            <li class="breadcrumb-item active">Классы</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div id="alerts"></div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-chalkboard mr-2"></i>Список классов</h3>
+                        <div class="card-tools">
+                            <a href="/pages/admin/classes/create.html" class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus"></i> Добавить
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Класс</th>
+                                    <th>Учебный год</th>
+                                    <th>Завуч</th>
+                                    <th style="width:120px">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="classes-tbody">
+                                <tr><td colspan="4" class="text-center py-4">
+                                    <i class="fas fa-spinner fa-spin"></i> Загрузка...
+                                </td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Delete modal -->
+    <div class="modal fade" id="delete-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-trash mr-2"></i>Удаление класса</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">Удалить класс <strong id="delete-name"></strong>?</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete">
+                        <i class="fas fa-trash"></i> Удалить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script>
+    requireAuth('admin', 'vice_principal');
+
+    let deleteId = null;
+    let usersMap = {};
+
+    function showAlert(msg, type = 'danger') {
+        document.getElementById('alerts').innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show">
+                <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle mr-2"></i>${msg}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
+    }
+
+    async function loadClasses() {
+        const classes = await api.get('/classes/');
+        const tbody = document.getElementById('classes-tbody');
+        if (!classes.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3">Классы не найдены</td></tr>';
+            return;
+        }
+        tbody.innerHTML = classes.map(c => {
+            const vp = c.vice_principal_id ? (usersMap[c.vice_principal_id] || 'Неизвестно') : '—';
+            return `<tr>
+                <td><strong>${c.name}</strong></td>
+                <td>${c.academic_year}</td>
+                <td>${vp}</td>
+                <td>
+                    <a href="/pages/admin/classes/edit.html?id=${c.id}" class="btn btn-xs btn-info mr-1" title="Редактировать">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <button class="btn btn-xs btn-danger" onclick="openDelete('${c.id}','${c.name} (${c.academic_year})')" title="Удалить">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    function openDelete(id, name) {
+        deleteId = id;
+        document.getElementById('delete-name').textContent = name;
+        new bootstrap.Modal(document.getElementById('delete-modal')).show();
+    }
+
+    document.getElementById('confirm-delete').addEventListener('click', async () => {
+        try {
+            await api.delete(`/classes/${deleteId}`);
+            bootstrap.Modal.getInstance(document.getElementById('delete-modal')).hide();
+            showAlert('Класс удалён', 'success');
+            await loadClasses();
+        } catch (err) { showAlert(err.message); }
+    });
+
+    async function loadComponents() {
+        const [navHtml, sideHtml] = await Promise.all([
+            fetch('/components/navbar.html').then(r => r.text()),
+            fetch('/components/sidebar-admin.html').then(r => r.text()),
+        ]);
+        document.getElementById('navbar').innerHTML = navHtml;
+        document.getElementById('sidebar').innerHTML = sideHtml;
+        const me = await api.get('/users/me');
+        document.getElementById('navbar-user-name').textContent = `${me.last_name} ${me.first_name}`;
+        document.getElementById('sidebar-user-name').textContent = `${me.last_name} ${me.first_name}`;
+    }
+
+    (async () => {
+        await loadComponents();
+        const users = await api.get('/users/');
+        users.forEach(u => { usersMap[u.id] = `${u.last_name} ${u.first_name}`; });
+        await loadClasses();
+    })();
+</script>
+</body>
+</html>

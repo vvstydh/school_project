@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Уведомления — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0">Уведомления</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/pages/student/dashboard.html">Главная</a></li>
+                            <li class="breadcrumb-item active">Уведомления</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div id="alerts"></div>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-bell mr-2"></i>Мои уведомления</h3>
+                                <div class="card-tools d-flex align-items-center">
+                                    <div class="custom-control custom-switch mr-3">
+                                        <input type="checkbox" class="custom-control-input" id="unread-only">
+                                        <label class="custom-control-label" for="unread-only">Только непрочитанные</label>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary" id="mark-all-btn">
+                                        <i class="fas fa-check-double"></i> Прочитать все
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-0" id="notif-list">
+                                <div class="text-center py-4"><i class="fas fa-spinner fa-spin"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Счётчик -->
+                    <div class="col-md-4">
+                        <div class="card card-widget widget-user-2">
+                            <div class="widget-user-header bg-primary">
+                                <h3 class="widget-user-username">Статистика</h3>
+                            </div>
+                            <div class="card-footer p-0">
+                                <ul class="nav flex-column">
+                                    <li class="nav-item">
+                                        <span class="nav-link d-flex justify-content-between">
+                                            Всего <span class="badge badge-primary" id="total-count">—</span>
+                                        </span>
+                                    </li>
+                                    <li class="nav-item">
+                                        <span class="nav-link d-flex justify-content-between">
+                                            Непрочитанных <span class="badge badge-danger" id="unread-count">—</span>
+                                        </span>
+                                    </li>
+                                    <li class="nav-item">
+                                        <span class="nav-link d-flex justify-content-between">
+                                            Прочитанных <span class="badge badge-success" id="read-count">—</span>
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script src="/js/pages/student/common.js"></script>
+<script>
+    requireAuth('student');
+
+    let allNotifs = [];
+
+    function updateCounters() {
+        const unread = allNotifs.filter(n => !n.is_read).length;
+        document.getElementById('total-count').textContent  = allNotifs.length;
+        document.getElementById('unread-count').textContent = unread;
+        document.getElementById('read-count').textContent   = allNotifs.length - unread;
+    }
+
+    function renderNotifs(notifs) {
+        const container = document.getElementById('notif-list');
+        if (!notifs.length) {
+            container.innerHTML = '<div class="text-center text-muted py-4"><i class="fas fa-bell-slash fa-2x mb-2"></i><br>Нет уведомлений</div>';
+            return;
+        }
+        container.innerHTML = notifs.map(n => `
+            <div class="d-flex align-items-start p-3 border-bottom ${n.is_read ? '' : 'bg-light'}" data-id="${n.id}">
+                <i class="fas fa-bell fa-lg ${n.is_read ? 'text-muted' : 'text-primary'} mr-3 mt-1"></i>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <strong>${n.title}</strong>
+                        <small class="text-muted ml-2 text-nowrap">${new Date(n.created_at).toLocaleString('ru')}</small>
+                    </div>
+                    <div class="text-secondary mt-1">${n.body}</div>
+                </div>
+                ${!n.is_read ? `
+                <button class="btn btn-xs btn-outline-primary ml-3 flex-shrink-0" onclick="markRead('${n.id}', this)" title="Прочитано">
+                    <i class="fas fa-check"></i>
+                </button>` : `<span class="ml-3 text-success" title="Прочитано"><i class="fas fa-check-circle"></i></span>`}
+            </div>`).join('');
+    }
+
+    async function markRead(id, btn) {
+        try {
+            await api.patch(`/notifications/${id}/read`);
+            const notif = allNotifs.find(n => n.id === id);
+            if (notif) notif.is_read = true;
+
+            const row = btn.closest('[data-id]');
+            row.classList.remove('bg-light');
+            row.querySelector('.fa-bell').classList.replace('text-primary', 'text-muted');
+            btn.outerHTML = '<span class="ml-3 text-success"><i class="fas fa-check-circle"></i></span>';
+            updateCounters();
+        } catch (err) { showAlert(err.message); }
+    }
+
+    document.getElementById('unread-only').addEventListener('change', function () {
+        renderNotifs(this.checked ? allNotifs.filter(n => !n.is_read) : allNotifs);
+    });
+
+    document.getElementById('mark-all-btn').addEventListener('click', async () => {
+        const unread = allNotifs.filter(n => !n.is_read);
+        if (!unread.length) { showAlert('Все уведомления уже прочитаны', 'info'); return; }
+        try {
+            await Promise.all(unread.map(n => api.patch(`/notifications/${n.id}/read`)));
+            allNotifs.forEach(n => { n.is_read = true; });
+            renderNotifs(allNotifs);
+            updateCounters();
+            showAlert('Все уведомления прочитаны', 'success');
+        } catch (err) { showAlert(err.message); }
+    });
+
+    (async () => {
+        await loadStudentComponents('notifications');
+        allNotifs = await api.get('/notifications/');
+        updateCounters();
+        renderNotifs(allNotifs);
+    })();
+</script>
+</body>
+</html>

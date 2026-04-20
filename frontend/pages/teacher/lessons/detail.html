@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Урок — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0" id="page-title">Урок</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/pages/teacher/dashboard.html">Главная</a></li>
+                            <li class="breadcrumb-item"><a href="/pages/teacher/lessons/index.html">Уроки</a></li>
+                            <li class="breadcrumb-item active">Урок</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div id="alerts"></div>
+
+                <!-- Информация об уроке -->
+                <div class="card card-info">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-info-circle mr-2"></i>Информация об уроке</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row" id="lesson-info">
+                            <div class="col-12 text-center py-2"><i class="fas fa-spinner fa-spin"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Оценки -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-star mr-2"></i>Оценки</h3>
+                                <div class="card-tools">
+                                    <button class="btn btn-sm btn-success" id="btn-add-grade" data-bs-toggle="modal" data-bs-target="#grade-modal">
+                                        <i class="fas fa-plus"></i> Выставить оценку
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <table class="table table-hover">
+                                    <thead><tr><th>Ученик</th><th>Оценка</th><th>Комментарий</th><th style="width:70px"></th></tr></thead>
+                                    <tbody id="grades-tbody">
+                                        <tr><td colspan="4" class="text-center py-3"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Посещаемость -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-clipboard-check mr-2"></i>Посещаемость</h3>
+                                <div class="card-tools">
+                                    <button class="btn btn-sm btn-info" id="btn-fill-attendance" onclick="fillAllPresent()">
+                                        <i class="fas fa-check-double"></i> Все присутствуют
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <table class="table table-hover">
+                                    <thead><tr><th>Ученик</th><th>Статус</th><th style="width:70px"></th></tr></thead>
+                                    <tbody id="attendance-tbody">
+                                        <tr><td colspan="3" class="text-center py-3"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Grade modal -->
+    <div class="modal fade" id="grade-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="grade-modal-title"><i class="fas fa-star mr-2"></i>Оценка</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="grade-form">
+                    <div class="modal-body">
+                        <div class="form-group" id="student-select-group">
+                            <label>Ученик <span class="text-danger">*</span></label>
+                            <select class="form-control" id="grade-student" required>
+                                <option value="">— Выберите ученика —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Оценка <span class="text-danger">*</span></label>
+                            <select class="form-control" id="grade-value" required>
+                                <option value="">— Выберите —</option>
+                                <option value="5">5 — Отлично</option>
+                                <option value="4">4 — Хорошо</option>
+                                <option value="3">3 — Удовлетворительно</option>
+                                <option value="2">2 — Неудовлетворительно</option>
+                                <option value="1">1 — Очень плохо</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Комментарий</label>
+                            <textarea class="form-control" id="grade-comment" rows="2" maxlength="1000"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance status modal -->
+    <div class="modal fade" id="attendance-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title"><i class="fas fa-clipboard-check mr-2"></i>Посещаемость: <span id="att-student-name"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="attendance-form">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Статус <span class="text-danger">*</span></label>
+                            <select class="form-control" id="att-status" required>
+                                <option value="present">Присутствовал</option>
+                                <option value="absent">Отсутствовал</option>
+                                <option value="late">Опоздал</option>
+                                <option value="excused">Уважительная причина</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-info"><i class="fas fa-save"></i> Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script src="/js/pages/teacher/common.js"></script>
+<script>
+    requireAuth('teacher');
+
+    const lessonId = new URLSearchParams(window.location.search).get('id');
+    if (!lessonId) window.location.href = '/pages/teacher/lessons/index.html';
+
+    let students = [], gradesMap = {}, attendanceMap = {};
+    let editGradeId = null, editAttId = null, editAttStudentId = null;
+
+    async function loadGrades() {
+        const grades = await api.get(`/grades/?lesson_id=${lessonId}`);
+        gradesMap = {};
+        grades.forEach(g => { gradesMap[g.student_id] = g; });
+
+        const tbody = document.getElementById('grades-tbody');
+        if (!grades.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-2">Оценок нет</td></tr>';
+            return;
+        }
+        tbody.innerHTML = grades.map(g => {
+            const student = students.find(s => s.student_id === g.student_id);
+            const name = student ? `${student.last_name} ${student.first_name}` : '—';
+            return `<tr>
+                <td>${name}</td>
+                <td><span class="badge badge-${GRADE_COLORS[g.value]} px-2 py-1" style="font-size:1rem">${g.value}</span></td>
+                <td><small>${g.comment || '—'}</small></td>
+                <td>
+                    <button class="btn btn-xs btn-info mr-1" onclick="openEditGrade('${g.id}','${g.value}','${(g.comment||'').replace(/'/g,"\\'")}')" title="Изменить"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-xs btn-danger" onclick="deleteGrade('${g.id}')" title="Удалить"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    async function loadAttendance() {
+        const atts = await api.get(`/attendances/?lesson_id=${lessonId}`);
+        attendanceMap = {};
+        atts.forEach(a => { attendanceMap[a.student_id] = a; });
+
+        const tbody = document.getElementById('attendance-tbody');
+        if (!students.length) {
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-2">Нет учеников</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = students.map(s => {
+            const att = attendanceMap[s.student_id];
+            const info = att ? ATTENDANCE_LABELS[att.status] : null;
+            return `<tr>
+                <td>${s.last_name} ${s.first_name}</td>
+                <td>${att
+                    ? `<span class="badge badge-${info.color}">${info.label}</span>`
+                    : '<span class="text-muted">—</span>'}</td>
+                <td>
+                    <button class="btn btn-xs btn-${att ? 'info' : 'success'}"
+                        onclick="openAttModal('${s.student_id}','${s.last_name} ${s.first_name}','${att ? att.status : 'present'}','${att ? att.id : ''}')"
+                        title="${att ? 'Изменить' : 'Отметить'}">
+                        <i class="fas fa-${att ? 'edit' : 'plus'}"></i>
+                    </button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    function openEditGrade(id, value, comment) {
+        editGradeId = id;
+        document.getElementById('grade-modal-title').innerHTML = '<i class="fas fa-edit mr-2"></i>Изменить оценку';
+        document.getElementById('student-select-group').style.display = 'none';
+        document.getElementById('grade-value').value = value;
+        document.getElementById('grade-comment').value = comment;
+        new bootstrap.Modal(document.getElementById('grade-modal')).show();
+    }
+
+    document.getElementById('btn-add-grade').addEventListener('click', () => {
+        editGradeId = null;
+        document.getElementById('grade-modal-title').innerHTML = '<i class="fas fa-star mr-2"></i>Выставить оценку';
+        document.getElementById('student-select-group').style.display = '';
+        document.getElementById('grade-form').reset();
+
+        // Показать только учеников без оценки
+        const sel = document.getElementById('grade-student');
+        sel.innerHTML = '<option value="">— Выберите ученика —</option>';
+        students.filter(s => !gradesMap[s.student_id]).forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.student_id;
+            opt.textContent = `${s.last_name} ${s.first_name}`;
+            sel.appendChild(opt);
+        });
+    });
+
+    document.getElementById('grade-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const value = parseInt(document.getElementById('grade-value').value);
+        const comment = document.getElementById('grade-comment').value;
+        try {
+            if (editGradeId) {
+                const body = { value };
+                if (comment) body.comment = comment;
+                await api.patch(`/grades/${editGradeId}`, body);
+            } else {
+                const body = { lesson_id: lessonId, student_id: document.getElementById('grade-student').value, value };
+                if (comment) body.comment = comment;
+                await api.post('/grades/', body);
+            }
+            bootstrap.Modal.getInstance(document.getElementById('grade-modal')).hide();
+            showAlert('Оценка сохранена', 'success');
+            await loadGrades();
+        } catch (err) { showAlert(err.message); }
+    });
+
+    async function deleteGrade(id) {
+        if (!confirm('Удалить оценку?')) return;
+        try {
+            await api.delete(`/grades/${id}`);
+            showAlert('Оценка удалена', 'success');
+            await loadGrades();
+        } catch (err) { showAlert(err.message); }
+    }
+
+    function openAttModal(studentId, name, currentStatus, attId) {
+        editAttStudentId = studentId;
+        editAttId = attId || null;
+        document.getElementById('att-student-name').textContent = name;
+        document.getElementById('att-status').value = currentStatus;
+        new bootstrap.Modal(document.getElementById('attendance-modal')).show();
+    }
+
+    document.getElementById('attendance-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const status = document.getElementById('att-status').value;
+        try {
+            if (editAttId) {
+                await api.patch(`/attendances/${editAttId}`, { status });
+            } else {
+                await api.post('/attendances/', { lesson_id: lessonId, student_id: editAttStudentId, status });
+            }
+            bootstrap.Modal.getInstance(document.getElementById('attendance-modal')).hide();
+            showAlert('Посещаемость обновлена', 'success');
+            await loadAttendance();
+        } catch (err) { showAlert(err.message); }
+    });
+
+    async function fillAllPresent() {
+        const missing = students.filter(s => !attendanceMap[s.student_id]);
+        if (!missing.length) { showAlert('Посещаемость уже заполнена', 'info'); return; }
+        try {
+            await Promise.all(missing.map(s =>
+                api.post('/attendances/', { lesson_id: lessonId, student_id: s.student_id, status: 'present' })
+            ));
+            showAlert(`Отмечено ${missing.length} учеников`, 'success');
+            await loadAttendance();
+        } catch (err) { showAlert(err.message); }
+    }
+
+    (async () => {
+        await loadTeacherComponents('lessons');
+
+        const lesson = await api.get(`/lessons/${lessonId}`);
+        document.getElementById('page-title').textContent = `Урок: ${lesson.date}`;
+        document.getElementById('lesson-info').innerHTML = `
+            <div class="col-md-3"><strong>Дата:</strong> ${lesson.date}</div>
+            <div class="col-md-3"><strong>Класс:</strong> ${lesson.class_name || '—'}</div>
+            <div class="col-md-3"><strong>Предмет:</strong> ${lesson.subject_name || '—'}</div>
+            <div class="col-md-3"><strong>Тема:</strong> ${lesson.topic || '<span class="text-muted">—</span>'}</div>`;
+
+        students = await api.get(`/classes/${lesson.class_id}/students`);
+
+        await Promise.all([loadGrades(), loadAttendance()]);
+    })();
+</script>
+</body>
+</html>

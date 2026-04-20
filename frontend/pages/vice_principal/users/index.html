@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пользователи — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0">Пользователи</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/pages/vice_principal/dashboard.html">Главная</a></li>
+                            <li class="breadcrumb-item active">Пользователи</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div id="alerts"></div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-users mr-2"></i>Список пользователей</h3>
+                        <div class="card-tools d-flex align-items-center gap-2">
+                            <select class="form-control form-control-sm mr-2" id="filter-role" style="width:160px">
+                                <option value="">Все роли</option>
+                                <option value="vice_principal">Завуч</option>
+                                <option value="teacher">Учитель</option>
+                                <option value="student">Ученик</option>
+                                <option value="parent">Родитель</option>
+                            </select>
+                            <a href="/pages/vice_principal/users/create.html" class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus"></i> Добавить
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover table-striped">
+                            <thead>
+                                <tr><th>ФИО</th><th>Email</th><th>Роль</th><th>Статус</th><th style="width:80px">Действия</th></tr>
+                            </thead>
+                            <tbody id="users-tbody">
+                                <tr><td colspan="5" class="text-center py-4"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Delete modal -->
+    <div class="modal fade" id="delete-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-exclamation-triangle mr-2"></i>Удаление</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">Удалить пользователя <strong id="delete-name"></strong>?</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete"><i class="fas fa-trash"></i> Удалить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script src="/js/pages/vice_principal/common.js"></script>
+<script>
+    requireAuth('vice_principal');
+
+    let allUsers = [], deleteId = null;
+
+    function renderTable(users) {
+        const tbody = document.getElementById('users-tbody');
+        if (!users.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">Пользователи не найдены</td></tr>';
+            return;
+        }
+        tbody.innerHTML = users.map(u => {
+            const r = ROLE_LABELS[u.role] || u.role;
+            const c = ROLE_COLORS[u.role] || 'secondary';
+            // Завуч не может удалять администраторов
+            const canDelete = u.role !== 'admin';
+            return `<tr>
+                <td>${u.last_name} ${u.first_name} ${u.middle_name || ''}</td>
+                <td>${u.email}</td>
+                <td><span class="badge badge-${c}">${r}</span></td>
+                <td>${u.is_active
+                    ? '<span class="badge badge-success">Активен</span>'
+                    : '<span class="badge badge-secondary">Отключён</span>'}</td>
+                <td>
+                    <a href="/pages/vice_principal/users/edit.html?id=${u.id}" class="btn btn-xs btn-info mr-1"><i class="fas fa-edit"></i></a>
+                    ${canDelete
+                        ? `<button class="btn btn-xs btn-danger" onclick="confirmDelete('${u.id}','${u.last_name} ${u.first_name}')"><i class="fas fa-trash"></i></button>`
+                        : `<button class="btn btn-xs btn-secondary" disabled title="Нельзя удалить администратора"><i class="fas fa-lock"></i></button>`}
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    function confirmDelete(id, name) {
+        deleteId = id;
+        document.getElementById('delete-name').textContent = name;
+        new bootstrap.Modal(document.getElementById('delete-modal')).show();
+    }
+
+    document.getElementById('confirm-delete').addEventListener('click', async () => {
+        try {
+            await api.delete(`/users/${deleteId}`);
+            bootstrap.Modal.getInstance(document.getElementById('delete-modal')).hide();
+            showAlert('Пользователь удалён', 'success');
+            allUsers = await api.get('/users/');
+            applyFilter();
+        } catch (err) { showAlert(err.message); }
+    });
+
+    function applyFilter() {
+        const role = document.getElementById('filter-role').value;
+        renderTable(role ? allUsers.filter(u => u.role === role) : allUsers);
+    }
+
+    document.getElementById('filter-role').addEventListener('change', applyFilter);
+
+    (async () => {
+        await loadVPComponents('users');
+        allUsers = await api.get('/users/');
+        applyFilter();
+    })();
+</script>
+</body>
+</html>

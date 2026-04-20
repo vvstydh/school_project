@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создать пользователя — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0">Создать пользователя</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/pages/vice_principal/dashboard.html">Главная</a></li>
+                            <li class="breadcrumb-item"><a href="/pages/vice_principal/users/index.html">Пользователи</a></li>
+                            <li class="breadcrumb-item active">Создать</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div id="alerts"></div>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-user-plus mr-2"></i>Новый пользователь</h3>
+                            </div>
+                            <form id="create-form">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Фамилия <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" name="last_name" required placeholder="Иванов">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Имя <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" name="first_name" required placeholder="Иван">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Отчество</label>
+                                                <input type="text" class="form-control" name="middle_name" placeholder="Иванович">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Email <span class="text-danger">*</span></label>
+                                        <input type="email" class="form-control" name="email" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Пароль <span class="text-danger">*</span></label>
+                                        <input type="password" class="form-control" name="password" required minlength="8">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Роль <span class="text-danger">*</span></label>
+                                        <select class="form-control" name="role" required>
+                                            <option value="">— Выберите роль —</option>
+                                            <!-- Завуч не может создавать администраторов -->
+                                            <option value="vice_principal">Завуч</option>
+                                            <option value="teacher">Учитель</option>
+                                            <option value="student">Ученик</option>
+                                            <option value="parent">Родитель</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <button type="submit" class="btn btn-primary" id="submit-btn">
+                                        <i class="fas fa-save"></i> Создать
+                                    </button>
+                                    <a href="/pages/vice_principal/users/index.html" class="btn btn-secondary ml-2">
+                                        <i class="fas fa-times"></i> Отмена
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card card-warning">
+                            <div class="card-header"><h3 class="card-title"><i class="fas fa-info-circle mr-2"></i>Ограничения</h3></div>
+                            <div class="card-body">
+                                <ul class="list-unstyled mb-0">
+                                    <li><i class="fas fa-times text-danger mr-2"></i>Нельзя создать Администратора</li>
+                                    <li><i class="fas fa-times text-danger mr-2"></i>Нельзя деактивировать аккаунты</li>
+                                    <li><i class="fas fa-check text-success mr-2"></i>ФИО только кириллицей</li>
+                                    <li><i class="fas fa-check text-success mr-2"></i>Пароль: минимум 8 символов</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script src="/js/pages/vice_principal/common.js"></script>
+<script>
+    requireAuth('vice_principal');
+
+    (async () => { await loadVPComponents('users'); })();
+
+    document.getElementById('create-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Сохранение...';
+
+        const fd = new FormData(e.target);
+        const body = {
+            last_name:   fd.get('last_name'),
+            first_name:  fd.get('first_name'),
+            email:       fd.get('email'),
+            password:    fd.get('password'),
+            role:        fd.get('role'),
+        };
+        const mn = fd.get('middle_name');
+        if (mn) body.middle_name = mn;
+
+        try {
+            await api.post('/users/', body);
+            window.location.href = '/pages/vice_principal/users/index.html';
+        } catch (err) {
+            showAlert(err.message);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save"></i> Создать';
+        }
+    });
+</script>
+</body>
+</html>

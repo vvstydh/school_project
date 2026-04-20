@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0">Главная</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item active">Главная</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+
+                <!-- Счётчики -->
+                <div class="row">
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-success">
+                            <div class="inner">
+                                <h3 id="avg-grade">—</h3>
+                                <p>Средний балл</p>
+                            </div>
+                            <div class="icon"><i class="fas fa-star"></i></div>
+                            <a href="/pages/student/grades.html" class="small-box-footer">Все оценки <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-info">
+                            <div class="inner">
+                                <h3 id="count-grades">—</h3>
+                                <p>Оценок всего</p>
+                            </div>
+                            <div class="icon"><i class="fas fa-list"></i></div>
+                            <a href="/pages/student/grades.html" class="small-box-footer">Подробнее <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-danger">
+                            <div class="inner">
+                                <h3 id="count-absent">—</h3>
+                                <p>Пропусков</p>
+                            </div>
+                            <div class="icon"><i class="fas fa-user-times"></i></div>
+                            <a href="/pages/student/attendances.html" class="small-box-footer">Посещаемость <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-warning">
+                            <div class="inner">
+                                <h3 id="count-unread">—</h3>
+                                <p>Новых уведомлений</p>
+                            </div>
+                            <div class="icon"><i class="fas fa-bell"></i></div>
+                            <a href="/pages/student/notifications.html" class="small-box-footer">Уведомления <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Последние оценки -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-star mr-2"></i>Последние оценки</h3>
+                                <div class="card-tools">
+                                    <a href="/pages/student/grades.html" class="btn btn-sm btn-primary">Все оценки</a>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <table class="table table-hover">
+                                    <thead><tr><th>Дата</th><th>Предмет</th><th>Оценка</th></tr></thead>
+                                    <tbody id="recent-grades">
+                                        <tr><td colspan="3" class="text-center py-3"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Уведомления -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-bell mr-2"></i>Новые уведомления</h3>
+                                <div class="card-tools">
+                                    <a href="/pages/student/notifications.html" class="btn btn-sm btn-primary">Все</a>
+                                </div>
+                            </div>
+                            <div class="card-body p-0" id="notif-list">
+                                <div class="text-center py-3"><i class="fas fa-spinner fa-spin"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Посещаемость сводная -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-clipboard-check mr-2"></i>Посещаемость</h3>
+                                <div class="card-tools">
+                                    <a href="/pages/student/attendances.html" class="btn btn-sm btn-primary">Подробнее</a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center" id="att-stats">
+                                    <div class="col-3">
+                                        <div class="description-block border-right">
+                                            <span class="description-percentage text-success" id="att-present">—</span>
+                                            <h5 class="description-header" id="att-present-n">—</h5>
+                                            <span class="description-text text-muted">Присутствовал</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="description-block border-right">
+                                            <span class="description-percentage text-danger" id="att-absent">—</span>
+                                            <h5 class="description-header" id="att-absent-n">—</h5>
+                                            <span class="description-text text-muted">Отсутствовал</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="description-block border-right">
+                                            <span class="description-percentage text-warning" id="att-late">—</span>
+                                            <h5 class="description-header" id="att-late-n">—</h5>
+                                            <span class="description-text text-muted">Опоздал</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="description-block">
+                                            <span class="description-percentage text-info" id="att-excused">—</span>
+                                            <h5 class="description-header" id="att-excused-n">—</h5>
+                                            <span class="description-text text-muted">Уважительная</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div>
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script src="/js/pages/student/common.js"></script>
+<script>
+    requireAuth('student');
+
+    (async () => {
+        const me = await loadStudentComponents('dashboard');
+        const myId = me.id;
+
+        const [grades, attendances, notifs, lessons] = await Promise.all([
+            api.get(`/grades/?student_id=${myId}`),
+            api.get(`/attendances/?student_id=${myId}`),
+            api.get('/notifications/'),
+            api.get('/lessons/'),
+        ]);
+
+        const lessonsMap = {};
+        lessons.forEach(l => { lessonsMap[l.id] = l; });
+
+        // Счётчики
+        const avg = grades.length
+            ? (grades.reduce((s, g) => s + g.value, 0) / grades.length).toFixed(1)
+            : '—';
+        document.getElementById('avg-grade').textContent = avg;
+        document.getElementById('count-grades').textContent = grades.length;
+        document.getElementById('count-absent').textContent = attendances.filter(a => a.status === 'absent').length;
+        document.getElementById('count-unread').textContent = notifs.filter(n => !n.is_read).length;
+
+        // Последние оценки
+        const sorted = [...grades].sort((a, b) => {
+            const la = lessonsMap[a.lesson_id], lb = lessonsMap[b.lesson_id];
+            return (lb?.date || '').localeCompare(la?.date || '');
+        }).slice(0, 5);
+
+        const tbody = document.getElementById('recent-grades');
+        if (!sorted.length) {
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Оценок нет</td></tr>';
+        } else {
+            tbody.innerHTML = sorted.map(g => {
+                const l = lessonsMap[g.lesson_id] || {};
+                return `<tr>
+                    <td>${l.date || '—'}</td>
+                    <td>${l.subject_name || '—'}</td>
+                    <td><span class="badge badge-${GRADE_COLORS[g.value]} px-2" style="font-size:1rem">${g.value}</span></td>
+                </tr>`;
+            }).join('');
+        }
+
+        // Уведомления
+        const unread = notifs.filter(n => !n.is_read).slice(0, 4);
+        const nc = document.getElementById('notif-list');
+        if (!unread.length) {
+            nc.innerHTML = '<div class="text-center text-muted py-3">Нет новых уведомлений</div>';
+        } else {
+            nc.innerHTML = unread.map(n => `
+                <div class="d-flex p-3 border-bottom bg-light">
+                    <i class="fas fa-bell text-primary mr-3 mt-1"></i>
+                    <div>
+                        <strong>${n.title}</strong>
+                        <div class="text-muted small">${n.body.slice(0, 70)}${n.body.length > 70 ? '...' : ''}</div>
+                    </div>
+                </div>`).join('');
+        }
+
+        // Посещаемость сводка
+        const total = attendances.length || 1;
+        const counts = { present: 0, absent: 0, late: 0, excused: 0 };
+        attendances.forEach(a => { if (counts[a.status] !== undefined) counts[a.status]++; });
+
+        ['present', 'absent', 'late', 'excused'].forEach(s => {
+            const pct = Math.round(counts[s] / total * 100);
+            document.getElementById(`att-${s}`).textContent = `${pct}%`;
+            document.getElementById(`att-${s}-n`).textContent = counts[s];
+        });
+    })();
+</script>
+</body>
+</html>

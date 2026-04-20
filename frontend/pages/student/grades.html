@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои оценки — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0">Мои оценки</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/pages/student/dashboard.html">Главная</a></li>
+                            <li class="breadcrumb-item active">Оценки</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div id="alerts"></div>
+
+                <!-- Средний балл по предметам -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-chart-bar mr-2"></i>Средний балл по предметам</h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover">
+                            <thead><tr><th>Предмет</th><th>Оценок</th><th>Средний балл</th><th>Оценки</th></tr></thead>
+                            <tbody id="subjects-tbody">
+                                <tr><td colspan="4" class="text-center py-3"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Все оценки -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-list mr-2"></i>Все оценки</h3>
+                        <div class="card-tools d-flex align-items-center">
+                            <select class="form-control form-control-sm mr-2" id="filter-value" style="width:130px">
+                                <option value="">Все оценки</option>
+                                <option value="5">5 — Отлично</option>
+                                <option value="4">4 — Хорошо</option>
+                                <option value="3">3 — Удовлетворительно</option>
+                                <option value="2">2 — Неудовлетворительно</option>
+                                <option value="1">1</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr><th>Дата</th><th>Предмет</th><th>Тема урока</th><th>Оценка</th><th>Комментарий</th></tr>
+                            </thead>
+                            <tbody id="grades-tbody">
+                                <tr><td colspan="5" class="text-center py-3"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer text-muted" id="grades-footer"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script src="/js/pages/student/common.js"></script>
+<script>
+    requireAuth('student');
+
+    let allGrades = [], lessonsMap = {};
+
+    function renderSubjects(grades) {
+        const bySubject = {};
+        grades.forEach(g => {
+            const l = lessonsMap[g.lesson_id] || {};
+            const subj = l.subject_name || 'Неизвестно';
+            if (!bySubject[subj]) bySubject[subj] = [];
+            bySubject[subj].push(g.value);
+        });
+
+        const tbody = document.getElementById('subjects-tbody');
+        const subjects = Object.entries(bySubject).sort((a, b) => a[0].localeCompare(b[0]));
+        if (!subjects.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Нет данных</td></tr>';
+            return;
+        }
+        tbody.innerHTML = subjects.map(([subj, vals]) => {
+            const avg = (vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(1);
+            const avgNum = parseFloat(avg);
+            const color = avgNum >= 4.5 ? 'success' : avgNum >= 3.5 ? 'info' : avgNum >= 2.5 ? 'warning' : 'danger';
+            const pills = vals.map(v => `<span class="badge badge-${GRADE_COLORS[v]} mr-1">${v}</span>`).join('');
+            return `<tr>
+                <td><strong>${subj}</strong></td>
+                <td>${vals.length}</td>
+                <td><span class="badge badge-${color} px-2" style="font-size:1rem">${avg}</span></td>
+                <td>${pills}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    function renderGrades(grades) {
+        const tbody = document.getElementById('grades-tbody');
+        const footer = document.getElementById('grades-footer');
+        const sorted = [...grades].sort((a, b) => {
+            const la = lessonsMap[a.lesson_id], lb = lessonsMap[b.lesson_id];
+            return (lb?.date || '').localeCompare(la?.date || '');
+        });
+        footer.textContent = `Показано: ${sorted.length} оценок`;
+        if (!sorted.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Оценок нет</td></tr>';
+            return;
+        }
+        tbody.innerHTML = sorted.map(g => {
+            const l = lessonsMap[g.lesson_id] || {};
+            return `<tr>
+                <td>${l.date || '—'}</td>
+                <td>${l.subject_name || '—'}</td>
+                <td>${l.topic || '<span class="text-muted">—</span>'}</td>
+                <td><span class="badge badge-${GRADE_COLORS[g.value]} px-2" style="font-size:1.1rem">${g.value}</span></td>
+                <td><small class="text-muted">${g.comment || '—'}</small></td>
+            </tr>`;
+        }).join('');
+    }
+
+    document.getElementById('filter-value').addEventListener('change', function () {
+        const v = this.value;
+        const filtered = v ? allGrades.filter(g => String(g.value) === v) : allGrades;
+        renderGrades(filtered);
+    });
+
+    (async () => {
+        const me = await loadStudentComponents('grades');
+
+        const [grades, lessons] = await Promise.all([
+            api.get(`/grades/?student_id=${me.id}`),
+            api.get('/lessons/'),
+        ]);
+
+        lessons.forEach(l => { lessonsMap[l.id] = l; });
+        allGrades = grades;
+
+        renderSubjects(grades);
+        renderGrades(grades);
+    })();
+</script>
+</body>
+</html>

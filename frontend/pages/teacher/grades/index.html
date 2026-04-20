@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оценки — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0">Оценки</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/pages/teacher/dashboard.html">Главная</a></li>
+                            <li class="breadcrumb-item active">Оценки</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div id="alerts"></div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-star mr-2"></i>Журнал оценок</h3>
+                        <div class="card-tools d-flex align-items-center">
+                            <select class="form-control form-control-sm mr-2" id="filter-lesson" style="width:220px">
+                                <option value="">Все уроки</option>
+                            </select>
+                            <select class="form-control form-control-sm mr-2" id="filter-value" style="width:120px">
+                                <option value="">Все оценки</option>
+                                <option value="5">5</option>
+                                <option value="4">4</option>
+                                <option value="3">3</option>
+                                <option value="2">2</option>
+                                <option value="1">1</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Ученик</th>
+                                    <th>Урок / Дата</th>
+                                    <th>Оценка</th>
+                                    <th>Комментарий</th>
+                                    <th style="width:90px">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="grades-tbody">
+                                <tr><td colspan="5" class="text-center py-4"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer text-muted" id="grades-count"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Edit modal -->
+    <div class="modal fade" id="edit-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title"><i class="fas fa-edit mr-2"></i>Изменить оценку</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="edit-form">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Оценка <span class="text-danger">*</span></label>
+                            <select class="form-control" id="edit-value" required>
+                                <option value="5">5 — Отлично</option>
+                                <option value="4">4 — Хорошо</option>
+                                <option value="3">3 — Удовлетворительно</option>
+                                <option value="2">2 — Неудовлетворительно</option>
+                                <option value="1">1 — Очень плохо</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Комментарий</label>
+                            <textarea class="form-control" id="edit-comment" rows="2" maxlength="1000"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-info"><i class="fas fa-save"></i> Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script src="/js/pages/teacher/common.js"></script>
+<script>
+    requireAuth('teacher');
+
+    let allGrades = [], lessonsMap = {}, usersMap = {}, editId = null;
+
+    function renderGrades(grades) {
+        const tbody = document.getElementById('grades-tbody');
+        document.getElementById('grades-count').textContent = `Показано: ${grades.length} оценок`;
+        if (!grades.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Оценок не найдено</td></tr>';
+            return;
+        }
+        tbody.innerHTML = grades.map(g => {
+            const lesson = lessonsMap[g.lesson_id] || {};
+            const studentName = usersMap[g.student_id] || '—';
+            return `<tr>
+                <td>${studentName}</td>
+                <td>${lesson.date || '—'} ${lesson.topic ? `<small class="text-muted">/ ${lesson.topic}</small>` : ''}</td>
+                <td><span class="badge badge-${GRADE_COLORS[g.value]} px-2" style="font-size:1rem">${g.value}</span></td>
+                <td><small>${g.comment || '—'}</small></td>
+                <td>
+                    <button class="btn btn-xs btn-info mr-1" onclick="openEdit('${g.id}','${g.value}','${(g.comment||'').replace(/'/g,"\\'")}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-xs btn-danger" onclick="deleteGrade('${g.id}')"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    function applyFilters() {
+        const lesson = document.getElementById('filter-lesson').value;
+        const value  = document.getElementById('filter-value').value;
+        let filtered = allGrades;
+        if (lesson) filtered = filtered.filter(g => g.lesson_id === lesson);
+        if (value)  filtered = filtered.filter(g => String(g.value) === value);
+        renderGrades(filtered);
+    }
+
+    document.getElementById('filter-lesson').addEventListener('change', applyFilters);
+    document.getElementById('filter-value').addEventListener('change', applyFilters);
+
+    function openEdit(id, value, comment) {
+        editId = id;
+        document.getElementById('edit-value').value = value;
+        document.getElementById('edit-comment').value = comment;
+        new bootstrap.Modal(document.getElementById('edit-modal')).show();
+    }
+
+    document.getElementById('edit-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const value = parseInt(document.getElementById('edit-value').value);
+        const comment = document.getElementById('edit-comment').value;
+        const body = { value };
+        if (comment) body.comment = comment;
+        try {
+            await api.patch(`/grades/${editId}`, body);
+            bootstrap.Modal.getInstance(document.getElementById('edit-modal')).hide();
+            showAlert('Оценка обновлена', 'success');
+            await loadData();
+        } catch (err) { showAlert(err.message); }
+    });
+
+    async function deleteGrade(id) {
+        if (!confirm('Удалить оценку?')) return;
+        try {
+            await api.delete(`/grades/${id}`);
+            showAlert('Оценка удалена', 'success');
+            await loadData();
+        } catch (err) { showAlert(err.message); }
+    }
+
+    async function loadData() {
+        const [grades, lessons, users] = await Promise.all([
+            api.get('/grades/'),
+            api.get('/lessons/'),
+            api.get('/users/'),
+        ]);
+
+        lessonsMap = {};
+        lessons.forEach(l => { lessonsMap[l.id] = l; });
+
+        usersMap = {};
+        users.forEach(u => { usersMap[u.id] = `${u.last_name} ${u.first_name}`; });
+
+        // Заполнить фильтр уроков
+        const sel = document.getElementById('filter-lesson');
+        const cur = sel.value;
+        sel.innerHTML = '<option value="">Все уроки</option>';
+        lessons.forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = l.id;
+            opt.textContent = `${l.date} — ${l.class_name || ''}${l.topic ? ' / ' + l.topic : ''}`;
+            sel.appendChild(opt);
+        });
+        sel.value = cur;
+
+        allGrades = grades;
+        applyFilters();
+    }
+
+    (async () => {
+        await loadTeacherComponents('grades');
+        await loadData();
+    })();
+</script>
+</body>
+</html>

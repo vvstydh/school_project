@@ -24,4 +24,9 @@ async def login(
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Аккаунт деактивирован")
 
-    return {"access_token": create_token(str(user.id), user.role), "token_type": "bearer"}
+    return {
+        "access_token": create_token(str(user.id), user.role),
+        "token_type": "bearer",
+        "role": user.role,
+        "user_id": str(user.id),
+    }

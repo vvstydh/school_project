@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Предметы — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0">Предметы</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/pages/admin/dashboard.html">Главная</a></li>
+                            <li class="breadcrumb-item active">Предметы</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div id="alerts"></div>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-book mr-2"></i>Список предметов</h3>
+                                <div class="card-tools">
+                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#create-modal">
+                                        <i class="fas fa-plus"></i> Добавить
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Название</th>
+                                            <th style="width:100px">Действия</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="subjects-tbody">
+                                        <tr><td colspan="3" class="text-center py-4">
+                                            <i class="fas fa-spinner fa-spin"></i> Загрузка...
+                                        </td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Create modal -->
+    <div class="modal fade" id="create-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fas fa-plus mr-2"></i>Новый предмет</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="create-form">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Название предмета <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="new-name" required placeholder="Математика">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary" id="create-btn">
+                            <i class="fas fa-save"></i> Создать
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit modal -->
+    <div class="modal fade" id="edit-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title"><i class="fas fa-edit mr-2"></i>Редактировать предмет</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="edit-form">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Название предмета <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="edit-name" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-info" id="edit-btn">
+                            <i class="fas fa-save"></i> Сохранить
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete modal -->
+    <div class="modal fade" id="delete-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-trash mr-2"></i>Удаление предмета</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    Удалить предмет <strong id="delete-name"></strong>?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete">
+                        <i class="fas fa-trash"></i> Удалить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script>
+    requireAuth('admin', 'vice_principal');
+
+    let editId = null, deleteId = null;
+
+    function showAlert(msg, type = 'danger') {
+        document.getElementById('alerts').innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show">
+                <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle mr-2"></i>${msg}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
+    }
+
+    async function loadSubjects() {
+        const subjects = await api.get('/subjects/');
+        const tbody = document.getElementById('subjects-tbody');
+        if (!subjects.length) {
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center py-3">Предметы не найдены</td></tr>';
+            return;
+        }
+        tbody.innerHTML = subjects.map((s, i) => `<tr>
+            <td>${i + 1}</td>
+            <td>${s.name}</td>
+            <td>
+                <button class="btn btn-xs btn-info mr-1" onclick="openEdit('${s.id}', '${s.name}')">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-xs btn-danger" onclick="openDelete('${s.id}', '${s.name}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>`).join('');
+    }
+
+    function openEdit(id, name) {
+        editId = id;
+        document.getElementById('edit-name').value = name;
+        new bootstrap.Modal(document.getElementById('edit-modal')).show();
+    }
+
+    function openDelete(id, name) {
+        deleteId = id;
+        document.getElementById('delete-name').textContent = name;
+        new bootstrap.Modal(document.getElementById('delete-modal')).show();
+    }
+
+    document.getElementById('create-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            await api.post('/subjects/', { name: document.getElementById('new-name').value });
+            bootstrap.Modal.getInstance(document.getElementById('create-modal')).hide();
+            document.getElementById('new-name').value = '';
+            showAlert('Предмет создан', 'success');
+            await loadSubjects();
+        } catch (err) { showAlert(err.message); }
+    });
+
+    document.getElementById('edit-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            await api.patch(`/subjects/${editId}`, { name: document.getElementById('edit-name').value });
+            bootstrap.Modal.getInstance(document.getElementById('edit-modal')).hide();
+            showAlert('Предмет обновлён', 'success');
+            await loadSubjects();
+        } catch (err) { showAlert(err.message); }
+    });
+
+    document.getElementById('confirm-delete').addEventListener('click', async () => {
+        try {
+            await api.delete(`/subjects/${deleteId}`);
+            bootstrap.Modal.getInstance(document.getElementById('delete-modal')).hide();
+            showAlert('Предмет удалён', 'success');
+            await loadSubjects();
+        } catch (err) { showAlert(err.message); }
+    });
+
+    async function loadComponents() {
+        const [navHtml, sideHtml] = await Promise.all([
+            fetch('/components/navbar.html').then(r => r.text()),
+            fetch('/components/sidebar-admin.html').then(r => r.text()),
+        ]);
+        document.getElementById('navbar').innerHTML = navHtml;
+        document.getElementById('sidebar').innerHTML = sideHtml;
+        const me = await api.get('/users/me');
+        document.getElementById('navbar-user-name').textContent = `${me.last_name} ${me.first_name}`;
+        document.getElementById('sidebar-user-name').textContent = `${me.last_name} ${me.first_name}`;
+    }
+
+    (async () => {
+        await loadComponents();
+        await loadSubjects();
+    })();
+</script>
+</body>
+</html>

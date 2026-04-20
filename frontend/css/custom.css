@@ -1,0 +1,78 @@
+/* Login page */
+.login-page {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh;
+}
+
+.login-box {
+    width: 380px;
+}
+
+.login-card-body {
+    border-top: 3px solid #007bff;
+}
+
+.login-logo a {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.8rem;
+}
+
+.login-logo small {
+    display: block;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.9rem;
+    font-weight: 400;
+}
+
+/* Sidebar active link */
+.nav-sidebar .nav-item > .nav-link.active {
+    background-color: rgba(255,255,255,0.15);
+}
+
+/* Cards */
+.card-header .card-title {
+    font-weight: 600;
+}
+
+/* Table */
+.table th {
+    border-top: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #6c757d;
+}
+
+/* Badges */
+.badge-role {
+    font-size: 0.8rem;
+    padding: 0.35em 0.6em;
+}
+
+/* Info boxes */
+.info-box .info-box-icon {
+    font-size: 2rem;
+}
+
+/* Alerts */
+#alerts .alert {
+    margin-bottom: 1rem;
+}
+
+/* Loading spinner */
+.spinner-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.3);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner-overlay.active {
+    display: flex;
+}

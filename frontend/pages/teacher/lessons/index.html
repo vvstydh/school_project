@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Уроки — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0">Уроки</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/pages/teacher/dashboard.html">Главная</a></li>
+                            <li class="breadcrumb-item active">Уроки</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div id="alerts"></div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-calendar-alt mr-2"></i>Мои уроки</h3>
+                        <div class="card-tools d-flex align-items-center gap-2">
+                            <select class="form-control form-control-sm mr-2" id="filter-class" style="width:120px">
+                                <option value="">Все классы</option>
+                            </select>
+                            <input type="date" class="form-control form-control-sm mr-2" id="filter-date" style="width:150px">
+                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#create-modal">
+                                <i class="fas fa-plus"></i> Добавить урок
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Класс</th>
+                                    <th>Предмет</th>
+                                    <th>Тема</th>
+                                    <th style="width:120px">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lessons-tbody">
+                                <tr><td colspan="5" class="text-center py-4"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Create modal -->
+    <div class="modal fade" id="create-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fas fa-plus mr-2"></i>Новый урок</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="create-form">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Класс <span class="text-danger">*</span></label>
+                            <select class="form-control" id="new-class" required>
+                                <option value="">— Выберите класс —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Дата <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="new-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Тема урока</label>
+                            <input type="text" class="form-control" id="new-topic" placeholder="Введение в тему..." minlength="2" maxlength="500">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Создать</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit modal -->
+    <div class="modal fade" id="edit-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title"><i class="fas fa-edit mr-2"></i>Редактировать урок</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="edit-form">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Дата <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="edit-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Тема урока</label>
+                            <input type="text" class="form-control" id="edit-topic" minlength="2" maxlength="500">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-info"><i class="fas fa-save"></i> Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete modal -->
+    <div class="modal fade" id="delete-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-trash mr-2"></i>Удаление урока</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">Удалить урок от <strong id="delete-info"></strong>? Все оценки и посещаемость будут удалены.</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete"><i class="fas fa-trash"></i> Удалить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script src="/js/pages/teacher/common.js"></script>
+<script>
+    requireAuth('teacher');
+
+    let allLessons = [], myClasses = [], editId = null, deleteId = null, currentUser = null;
+
+    function renderLessons(lessons) {
+        const tbody = document.getElementById('lessons-tbody');
+        if (!lessons.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Уроков не найдено</td></tr>';
+            return;
+        }
+        tbody.innerHTML = [...lessons].sort((a, b) => b.date.localeCompare(a.date)).map(l => `<tr>
+            <td>${l.date}</td>
+            <td><span class="badge badge-info">${l.class_name || '—'}</span></td>
+            <td>${l.subject_name || '—'}</td>
+            <td>${l.topic || '<span class="text-muted">—</span>'}</td>
+            <td>
+                <a href="/pages/teacher/lessons/detail.html?id=${l.id}" class="btn btn-xs btn-success mr-1" title="Открыть"><i class="fas fa-eye"></i></a>
+                <button class="btn btn-xs btn-info mr-1" onclick="openEdit('${l.id}','${l.date}','${(l.topic||'').replace(/'/g,"\\'")}')"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-xs btn-danger" onclick="openDelete('${l.id}','${l.date}')"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>`).join('');
+    }
+
+    function applyFilters() {
+        const cls = document.getElementById('filter-class').value;
+        const date = document.getElementById('filter-date').value;
+        let filtered = allLessons;
+        if (cls)  filtered = filtered.filter(l => l.class_id === cls);
+        if (date) filtered = filtered.filter(l => l.date === date);
+        renderLessons(filtered);
+    }
+
+    document.getElementById('filter-class').addEventListener('change', applyFilters);
+    document.getElementById('filter-date').addEventListener('change', applyFilters);
+
+    function openEdit(id, date, topic) {
+        editId = id;
+        document.getElementById('edit-date').value = date;
+        document.getElementById('edit-topic').value = topic;
+        new bootstrap.Modal(document.getElementById('edit-modal')).show();
+    }
+
+    function openDelete(id, date) {
+        deleteId = id;
+        document.getElementById('delete-info').textContent = date;
+        new bootstrap.Modal(document.getElementById('delete-modal')).show();
+    }
+
+    document.getElementById('create-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const classId = document.getElementById('new-class').value;
+        const topic = document.getElementById('new-topic').value;
+        const body = {
+            class_id:   classId,
+            teacher_id: currentUser.id,
+            subject_id: currentUser.teacher_profile?.subject_id,
+            date:       document.getElementById('new-date').value,
+        };
+        if (topic) body.topic = topic;
+        try {
+            await api.post('/lessons/', body);
+            bootstrap.Modal.getInstance(document.getElementById('create-modal')).hide();
+            e.target.reset();
+            showAlert('Урок создан', 'success');
+            await loadLessons();
+        } catch (err) { showAlert(err.message); }
+    });
+
+    document.getElementById('edit-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const topic = document.getElementById('edit-topic').value;
+        const body = { date: document.getElementById('edit-date').value };
+        if (topic) body.topic = topic;
+        try {
+            await api.patch(`/lessons/${editId}`, body);
+            bootstrap.Modal.getInstance(document.getElementById('edit-modal')).hide();
+            showAlert('Урок обновлён', 'success');
+            await loadLessons();
+        } catch (err) { showAlert(err.message); }
+    });
+
+    document.getElementById('confirm-delete').addEventListener('click', async () => {
+        try {
+            await api.delete(`/lessons/${deleteId}`);
+            bootstrap.Modal.getInstance(document.getElementById('delete-modal')).hide();
+            showAlert('Урок удалён', 'success');
+            await loadLessons();
+        } catch (err) { showAlert(err.message); }
+    });
+
+    async function loadLessons() {
+        allLessons = await api.get('/lessons/');
+        applyFilters();
+    }
+
+    (async () => {
+        currentUser = await loadTeacherComponents('lessons');
+
+        // Загружаем классы учителя
+        const classes = await api.get('/classes/');
+        myClasses = classes;
+
+        const classFilter = document.getElementById('filter-class');
+        const classSelect = document.getElementById('new-class');
+        classes.forEach(c => {
+            [classFilter, classSelect].forEach(sel => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = `${c.name} (${c.academic_year})`;
+                sel.appendChild(opt);
+            });
+        });
+
+        document.getElementById('new-date').value = new Date().toISOString().slice(0, 10);
+        await loadLessons();
+    })();
+</script>
+</body>
+</html>

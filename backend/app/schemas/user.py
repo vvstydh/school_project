@@ -100,3 +100,4 @@ class UserResponse(BaseModel):
     updated_at:      datetime
     teacher_profile: TeacherProfileResponse | None = None
     student_profile: StudentProfileResponse | None = None
+    children:        list[UserShort] = []
