@@ -52,7 +52,7 @@ docker compose down -v
 
 ```bash
 # скопировать скрипт в контейнер
-docker cp backend/seed_admin.py school_journal_api:/app/seed_admin.py
+docker cp backend/seed_admin.py school_project_api:/app/seed_admin.py
 
 # запустить
 docker compose exec api python seed_admin.py
