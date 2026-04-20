@@ -1,0 +1,10 @@
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Docker volumes (на случай если вдруг окажутся в папке)
+postgres_data/
