@@ -7,4 +7,4 @@ __pycache__/
 venv/
 
 # Docker volumes (на случай если вдруг окажутся в папке)
-postgres_data/
+postgres_data/.env
