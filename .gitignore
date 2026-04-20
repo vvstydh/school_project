@@ -3,11 +3,15 @@
 # Python
 __pycache__/
 *.pyc
+*.pyo
 .venv/
 venv/
 
+# Mac
+.DS_Store
+
 # Docker volumes (на случай если вдруг окажутся в папке)
-postgres_data/.env
+postgres_data/
 
 # Логи
 *.log
