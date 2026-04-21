@@ -38,6 +38,7 @@
                         <div class="card-tools d-flex align-items-center gap-2">
                             <select class="form-control form-control-sm mr-2" id="filter-role" style="width:160px">
                                 <option value="">Все роли</option>
+                                <option value="admin">Администратор</option>
                                 <option value="vice_principal">Завуч</option>
                                 <option value="teacher">Учитель</option>
                                 <option value="student">Ученик</option>
@@ -51,7 +52,13 @@
                     <div class="card-body p-0">
                         <table class="table table-hover table-striped">
                             <thead>
-                                <tr><th>ФИО</th><th>Email</th><th>Роль</th><th>Статус</th><th style="width:80px">Действия</th></tr>
+                                <tr>
+                                    <th>ФИО</th>
+                                    <th>Email</th>
+                                    <th>Роль</th>
+                                    <th>Статус</th>
+                                    <th style="width:60px">Профиль</th>
+                                </tr>
                             </thead>
                             <tbody id="users-tbody">
                                 <tr><td colspan="5" class="text-center py-4"><i class="fas fa-spinner fa-spin"></i></td></tr>
@@ -61,23 +68,6 @@
                 </div>
             </div>
         </section>
-    </div>
-
-    <!-- Delete modal -->
-    <div class="modal fade" id="delete-modal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title"><i class="fas fa-exclamation-triangle mr-2"></i>Удаление</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">Удалить пользователя <strong id="delete-name"></strong>?</div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                    <button type="button" class="btn btn-danger" id="confirm-delete"><i class="fas fa-trash"></i> Удалить</button>
-                </div>
-            </div>
-        </div>
     </div>
 
     <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
@@ -93,7 +83,7 @@
 <script>
     requireAuth('vice_principal');
 
-    let allUsers = [], deleteId = null;
+    let allUsers = [];
 
     function renderTable(users) {
         const tbody = document.getElementById('users-tbody');
@@ -101,11 +91,11 @@
             tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">Пользователи не найдены</td></tr>';
             return;
         }
+        const myId = sessionStorage.getItem('user_id');
         tbody.innerHTML = users.map(u => {
             const r = ROLE_LABELS[u.role] || u.role;
             const c = ROLE_COLORS[u.role] || 'secondary';
-            // Завуч не может удалять администраторов
-            const canDelete = u.role !== 'admin';
+            const isSelf = u.id === myId;
             return `<tr>
                 <td>${u.last_name} ${u.first_name} ${u.middle_name || ''}</td>
                 <td>${u.email}</td>
@@ -114,30 +104,13 @@
                     ? '<span class="badge badge-success">Активен</span>'
                     : '<span class="badge badge-secondary">Отключён</span>'}</td>
                 <td>
-                    <a href="/pages/vice_principal/users/edit.html?id=${u.id}" class="btn btn-xs btn-info mr-1"><i class="fas fa-edit"></i></a>
-                    ${canDelete
-                        ? `<button class="btn btn-xs btn-danger" onclick="confirmDelete('${u.id}','${u.last_name} ${u.first_name}')"><i class="fas fa-trash"></i></button>`
-                        : `<button class="btn btn-xs btn-secondary" disabled title="Нельзя удалить администратора"><i class="fas fa-lock"></i></button>`}
+                    ${isSelf
+                        ? `<a href="/pages/vice_principal/users/profile.html?id=${u.id}" class="btn btn-xs btn-primary" title="Мой профиль"><i class="fas fa-user-edit"></i></a>`
+                        : `<a href="/pages/vice_principal/users/view.html?id=${u.id}" class="btn btn-xs btn-secondary" title="Просмотр"><i class="fas fa-eye"></i></a>`}
                 </td>
             </tr>`;
         }).join('');
     }
-
-    function confirmDelete(id, name) {
-        deleteId = id;
-        document.getElementById('delete-name').textContent = name;
-        new bootstrap.Modal(document.getElementById('delete-modal')).show();
-    }
-
-    document.getElementById('confirm-delete').addEventListener('click', async () => {
-        try {
-            await api.delete(`/users/${deleteId}`);
-            bootstrap.Modal.getInstance(document.getElementById('delete-modal')).hide();
-            showAlert('Пользователь удалён', 'success');
-            allUsers = await api.get('/users/');
-            applyFilter();
-        } catch (err) { showAlert(err.message); }
-    });
 
     function applyFilter() {
         const role = document.getElementById('filter-role').value;

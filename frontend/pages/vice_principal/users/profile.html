@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой профиль — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0">Мой профиль</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/pages/vice_principal/dashboard.html">Главная</a></li>
+                            <li class="breadcrumb-item active">Мой профиль</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div id="alerts"></div>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-user-edit mr-2"></i>Редактировать профиль</h3>
+                            </div>
+                            <form id="profile-form">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Фамилия <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" name="last_name" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Имя <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" name="first_name" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Отчество</label>
+                                                <input type="text" class="form-control" name="middle_name">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Email <span class="text-danger">*</span></label>
+                                        <input type="email" class="form-control" name="email" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Новый пароль <small class="text-muted">(оставьте пустым чтобы не менять)</small></label>
+                                        <input type="password" class="form-control" name="password" minlength="8">
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <button type="submit" class="btn btn-primary" id="submit-btn">
+                                        <i class="fas fa-save"></i> Сохранить
+                                    </button>
+                                    <a href="/pages/vice_principal/dashboard.html" class="btn btn-secondary ml-2">
+                                        <i class="fas fa-times"></i> Отмена
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script src="/js/pages/vice_principal/common.js"></script>
+<script>
+    requireAuth('vice_principal');
+
+    const myId = sessionStorage.getItem('user_id');
+    // Redirect if trying to edit someone else
+    const paramId = new URLSearchParams(window.location.search).get('id');
+    if (paramId && paramId !== myId) window.location.href = '/pages/vice_principal/users/index.html';
+
+    (async () => {
+        await loadVPComponents('');
+
+        const me = await api.get('/users/me');
+        const form = document.getElementById('profile-form');
+        form.last_name.value   = me.last_name;
+        form.first_name.value  = me.first_name;
+        form.middle_name.value = me.middle_name || '';
+        form.email.value       = me.email;
+    })();
+
+    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Сохранение...';
+
+        const fd = new FormData(e.target);
+        const body = {
+            last_name:  fd.get('last_name'),
+            first_name: fd.get('first_name'),
+            email:      fd.get('email'),
+        };
+        const mn = fd.get('middle_name');
+        if (mn) body.middle_name = mn;
+        const pw = fd.get('password');
+        if (pw) body.password = pw;
+
+        try {
+            await api.patch(`/users/${myId}`, body);
+            showAlert('Профиль обновлён', 'success');
+            // Update displayed name in sidebar/navbar
+            document.getElementById('navbar-user-name').textContent = `${body.last_name} ${body.first_name}`;
+            document.getElementById('sidebar-user-name').textContent = `${body.last_name} ${body.first_name}`;
+        } catch (err) {
+            showAlert(err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save"></i> Сохранить';
+        }
+    });
+</script>
+</body>
+</html>

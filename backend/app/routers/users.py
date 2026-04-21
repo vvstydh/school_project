@@ -105,14 +105,12 @@ async def update_user(
     is_vp = current_user.role == "vice_principal"
     is_admin = current_user.role == "admin"
 
+    if is_vp and current_user.id != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Завуч не может редактировать других пользователей")
+
     if not is_admin and not is_vp and current_user.id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав")
-
-    if is_vp and current_user.id != user_id:
-        data = body.model_dump(exclude_unset=True)
-        if "is_active" in data:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                                detail="Завуч не может деактивировать аккаунты")
 
     user = await db.get(User, user_id)
     if not user:
@@ -120,7 +118,7 @@ async def update_user(
 
     data = body.model_dump(exclude_unset=True)
 
-    if is_vp and current_user.id != user_id:
+    if is_vp:
         data.pop("is_active", None)
         data.pop("role", None)
 
@@ -146,7 +144,7 @@ async def update_user(
 async def delete_user(
     user_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(_ADMIN_VP),
+    _: User = Depends(_ADMIN),
 ):
     user = await db.get(User, user_id)
     if not user:

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль пользователя — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0">Просмотр пользователя</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/pages/vice_principal/dashboard.html">Главная</a></li>
+                            <li class="breadcrumb-item"><a href="/pages/vice_principal/users/index.html">Пользователи</a></li>
+                            <li class="breadcrumb-item active">Просмотр</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div id="alerts"></div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-user mr-2"></i>Данные пользователя</h3>
+                            </div>
+                            <div class="card-body" id="user-info">
+                                <div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+                            </div>
+                            <div class="card-footer">
+                                <a href="/pages/vice_principal/users/index.html" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Назад
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card card-info">
+                            <div class="card-header"><h3 class="card-title"><i class="fas fa-info-circle mr-2"></i>Ограничения завуча</h3></div>
+                            <div class="card-body">
+                                <ul class="list-unstyled mb-0">
+                                    <li><i class="fas fa-eye text-info mr-2"></i>Просмотр доступен</li>
+                                    <li><i class="fas fa-times text-danger mr-2"></i>Редактирование других пользователей недоступно</li>
+                                    <li><i class="fas fa-times text-danger mr-2"></i>Удаление пользователей недоступно</li>
+                                    <li><i class="fas fa-check text-success mr-2"></i>Создание новых пользователей доступно</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script src="/js/pages/vice_principal/common.js"></script>
+<script>
+    requireAuth('vice_principal');
+
+    const userId = new URLSearchParams(window.location.search).get('id');
+    if (!userId) window.location.href = '/pages/vice_principal/users/index.html';
+
+    (async () => {
+        await loadVPComponents('users');
+
+        const user = await api.get(`/users/${userId}`);
+        const r = ROLE_LABELS[user.role] || user.role;
+        const c = ROLE_COLORS[user.role] || 'secondary';
+
+        document.getElementById('user-info').innerHTML = `
+            <table class="table table-borderless mb-0">
+                <tr><th style="width:40%">Фамилия</th><td>${user.last_name}</td></tr>
+                <tr><th>Имя</th><td>${user.first_name}</td></tr>
+                <tr><th>Отчество</th><td>${user.middle_name || '—'}</td></tr>
+                <tr><th>Email</th><td>${user.email}</td></tr>
+                <tr><th>Роль</th><td><span class="badge badge-${c}">${r}</span></td></tr>
+                <tr><th>Статус</th><td>${user.is_active
+                    ? '<span class="badge badge-success">Активен</span>'
+                    : '<span class="badge badge-secondary">Отключён</span>'}</td></tr>
+                <tr><th>Создан</th><td>${new Date(user.created_at).toLocaleDateString('ru-RU')}</td></tr>
+            </table>`;
+    })();
+</script>
+</body>
+</html>
