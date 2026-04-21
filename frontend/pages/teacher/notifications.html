@@ -33,22 +33,49 @@
             <div class="container-fluid">
                 <div id="alerts"></div>
                 <div class="row">
+                    <!-- My notifications -->
                     <div class="col-md-8">
                         <div class="card">
                             <div class="card-header">
                                 <h3 class="card-title"><i class="fas fa-bell mr-2"></i>Мои уведомления</h3>
-                                <div class="card-tools d-flex align-items-center">
-                                    <div class="custom-control custom-switch mr-3">
+                                <div class="card-tools">
+                                    <div class="custom-control custom-switch">
                                         <input type="checkbox" class="custom-control-input" id="unread-only">
                                         <label class="custom-control-label" for="unread-only">Только непрочитанные</label>
                                     </div>
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#send-modal">
-                                        <i class="fas fa-paper-plane"></i> Отправить
-                                    </button>
                                 </div>
                             </div>
                             <div class="card-body p-0" id="notif-list">
-                                <div class="text-center py-4"><i class="fas fa-spinner fa-spin"></i></div>
+                                <div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Send actions sidebar -->
+                    <div class="col-md-4">
+                        <!-- Message to parent -->
+                        <div class="card card-primary card-outline">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-user-friends mr-2"></i>Написать родителю</h3>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted mb-3">Отправьте личное сообщение родителю об ученике вашего класса.</p>
+                                <button class="btn btn-primary btn-block" data-bs-toggle="modal" data-bs-target="#parent-modal">
+                                    <i class="fas fa-paper-plane mr-1"></i> Написать родителю
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Lesson cancellation notice -->
+                        <div class="card card-warning card-outline">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-exclamation-triangle mr-2"></i>Отмена урока</h3>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted mb-3">Уведомьте всех учеников класса об отмене урока.</p>
+                                <button class="btn btn-warning btn-block" data-bs-toggle="modal" data-bs-target="#cancel-modal">
+                                    <i class="fas fa-broadcast-tower mr-1"></i> Уведомить класс
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -57,34 +84,86 @@
         </section>
     </div>
 
-    <!-- Send modal -->
-    <div class="modal fade" id="send-modal" tabindex="-1">
+    <!-- Modal: Message to parent -->
+    <div class="modal fade" id="parent-modal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title"><i class="fas fa-paper-plane mr-2"></i>Отправить уведомление</h5>
+                    <h5 class="modal-title"><i class="fas fa-user-friends mr-2"></i>Сообщение родителю</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <form id="send-form">
+                <form id="parent-form">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label>Получатель <span class="text-danger">*</span></label>
-                            <select class="form-control" id="recipient-select" required>
-                                <option value="">— Выберите пользователя —</option>
+                            <label>Класс <span class="text-danger">*</span></label>
+                            <select class="form-control" id="parent-class" required>
+                                <option value="">— Выберите класс —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Ученик <span class="text-danger">*</span></label>
+                            <select class="form-control" id="parent-student" required>
+                                <option value="">— Сначала выберите класс —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Родитель <span class="text-danger">*</span></label>
+                            <select class="form-control" id="parent-recipient" required>
+                                <option value="">— Сначала выберите ученика —</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Заголовок <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="notif-title" required minlength="2" maxlength="255">
+                            <input type="text" class="form-control" id="parent-title" required minlength="2" maxlength="255"
+                                   placeholder="Например: Об успеваемости вашего ребёнка">
                         </div>
                         <div class="form-group">
                             <label>Сообщение <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="notif-body" rows="4" required minlength="2" maxlength="5000"></textarea>
+                            <textarea class="form-control" id="parent-body" rows="4" required minlength="2" maxlength="5000"
+                                      placeholder="Текст сообщения..."></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Отправить</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane mr-1"></i> Отправить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Class cancellation notice -->
+    <div class="modal fade" id="cancel-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title"><i class="fas fa-exclamation-triangle mr-2"></i>Отмена урока — уведомить класс</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="cancel-form">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Класс <span class="text-danger">*</span></label>
+                            <select class="form-control" id="cancel-class" required>
+                                <option value="">— Выберите класс —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Дата отменённого урока</label>
+                            <input type="date" class="form-control" id="cancel-date">
+                        </div>
+                        <div class="form-group">
+                            <label>Сообщение ученикам <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="cancel-message" rows="4" required minlength="2" maxlength="5000"></textarea>
+                        </div>
+                        <div class="alert alert-info py-2 mb-0" id="cancel-recipients" style="display:none">
+                            <i class="fas fa-users mr-1"></i>
+                            Уведомление получат: <strong id="cancel-count">0</strong> учеников
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-warning"><i class="fas fa-broadcast-tower mr-1"></i> Отправить всем</button>
                     </div>
                 </form>
             </div>
@@ -104,7 +183,9 @@
 <script>
     requireAuth('teacher');
 
-    let allNotifs = [];
+    let allNotifs = [], allUsers = [], myClasses = [], cancelStudents = [];
+
+    // ── My notifications ─────────────────────────────────────────────────────
 
     function renderNotifs(notifs) {
         const container = document.getElementById('notif-list');
@@ -145,38 +226,146 @@
         renderNotifs(this.checked ? allNotifs.filter(n => !n.is_read) : allNotifs);
     });
 
-    document.getElementById('send-form').addEventListener('submit', async (e) => {
+    // ── Parent modal ──────────────────────────────────────────────────────────
+
+    document.getElementById('parent-class').addEventListener('change', async function () {
+        const classId = this.value;
+        const studentSel = document.getElementById('parent-student');
+        const parentSel  = document.getElementById('parent-recipient');
+        studentSel.innerHTML = '<option value="">— Выберите ученика —</option>';
+        parentSel.innerHTML  = '<option value="">— Сначала выберите ученика —</option>';
+        if (!classId) return;
+
+        const students = await api.get(`/classes/${classId}/students`);
+        students.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.student_id;
+            opt.textContent = s.student ? `${s.student.last_name} ${s.student.first_name}` : s.student_id;
+            studentSel.appendChild(opt);
+        });
+    });
+
+    document.getElementById('parent-student').addEventListener('change', function () {
+        const studentId = this.value;
+        const parentSel = document.getElementById('parent-recipient');
+        parentSel.innerHTML = '<option value="">— Выберите родителя —</option>';
+        if (!studentId) return;
+
+        const parents = allUsers.filter(u =>
+            u.role === 'parent' &&
+            Array.isArray(u.children) &&
+            u.children.some(c => String(c.id) === studentId)
+        );
+        if (!parents.length) {
+            parentSel.innerHTML = '<option value="" disabled>Родители не найдены</option>';
+            return;
+        }
+        parents.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = `${p.last_name} ${p.first_name}`;
+            parentSel.appendChild(opt);
+        });
+    });
+
+    document.getElementById('parent-form').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const recipientId = document.getElementById('parent-recipient').value;
+        if (!recipientId) { showAlert('Выберите родителя'); return; }
         try {
             await api.post('/notifications/', {
-                recipient_id: document.getElementById('recipient-select').value,
-                title:        document.getElementById('notif-title').value,
-                body:         document.getElementById('notif-body').value,
+                recipient_id: recipientId,
+                title:        document.getElementById('parent-title').value,
+                body:         document.getElementById('parent-body').value,
             });
-            bootstrap.Modal.getInstance(document.getElementById('send-modal')).hide();
+            bootstrap.Modal.getInstance(document.getElementById('parent-modal')).hide();
             e.target.reset();
-            showAlert('Уведомление отправлено', 'success');
+            document.getElementById('parent-student').innerHTML = '<option value="">— Сначала выберите класс —</option>';
+            document.getElementById('parent-recipient').innerHTML = '<option value="">— Сначала выберите ученика —</option>';
+            showAlert('Сообщение родителю отправлено', 'success');
         } catch (err) { showAlert(err.message); }
     });
+
+    // ── Cancellation modal ────────────────────────────────────────────────────
+
+    document.getElementById('cancel-class').addEventListener('change', async function () {
+        const classId = this.value;
+        cancelStudents = [];
+        document.getElementById('cancel-recipients').style.display = 'none';
+        if (!classId) return;
+
+        cancelStudents = await api.get(`/classes/${classId}/students`);
+        const cls = myClasses.find(c => c.id === classId);
+        document.getElementById('cancel-count').textContent = cancelStudents.length;
+        document.getElementById('cancel-recipients').style.display = '';
+
+        // Pre-fill message
+        const date = document.getElementById('cancel-date').value;
+        updateCancelMessage(cls?.name || '', date);
+    });
+
+    document.getElementById('cancel-date').addEventListener('change', function () {
+        const classId = document.getElementById('cancel-class').value;
+        const cls = myClasses.find(c => c.id === classId);
+        updateCancelMessage(cls?.name || '', this.value);
+    });
+
+    function updateCancelMessage(className, date) {
+        const msg = document.getElementById('cancel-message');
+        const dateStr = date ? ` ${date}` : '';
+        msg.value = `Уважаемые ученики${className ? ' ' + className : ''}!\n\nСообщаем, что урок${dateStr} отменяется. Следите за расписанием.\n\nС уважением, ваш учитель.`;
+    }
+
+    document.getElementById('cancel-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!cancelStudents.length) {
+            showAlert('В выбранном классе нет учеников или класс не выбран');
+            return;
+        }
+        const date    = document.getElementById('cancel-date').value;
+        const message = document.getElementById('cancel-message').value;
+        const title   = date ? `Отмена урока ${date}` : 'Отмена урока';
+        const count   = cancelStudents.length;
+        try {
+            await Promise.all(cancelStudents.map(s =>
+                api.post('/notifications/', {
+                    recipient_id: s.student_id,
+                    title,
+                    body: message,
+                })
+            ));
+            bootstrap.Modal.getInstance(document.getElementById('cancel-modal')).hide();
+            document.getElementById('cancel-form').reset();
+            cancelStudents = [];
+            document.getElementById('cancel-recipients').style.display = 'none';
+            showAlert(`Уведомление об отмене урока отправлено ${count} ученикам`, 'success');
+        } catch (err) { showAlert(err.message); }
+    });
+
+    // ── Init ─────────────────────────────────────────────────────────────────
 
     (async () => {
         await loadTeacherComponents('notifications');
 
-        const [notifs, users] = await Promise.all([
+        [allNotifs, myClasses, allUsers] = await Promise.all([
             api.get('/notifications/'),
+            api.get('/classes/'),
             api.get('/users/'),
         ]);
 
-        allNotifs = notifs;
-        renderNotifs(notifs);
+        renderNotifs(allNotifs);
 
-        const sel = document.getElementById('recipient-select');
-        users.forEach(u => {
-            const opt = document.createElement('option');
-            opt.value = u.id;
-            opt.textContent = `${u.last_name} ${u.first_name} (${u.email})`;
-            sel.appendChild(opt);
-        });
+        // Populate class selectors in both modals
+        const classOpts = myClasses.map(c =>
+            `<option value="${c.id}">${c.name} (${c.academic_year})</option>`
+        ).join('');
+        document.getElementById('parent-class').innerHTML =
+            '<option value="">— Выберите класс —</option>' + classOpts;
+        document.getElementById('cancel-class').innerHTML =
+            '<option value="">— Выберите класс —</option>' + classOpts;
+
+        // Default cancel date to today
+        document.getElementById('cancel-date').value = new Date().toISOString().slice(0, 10);
     })();
 </script>
 </body>

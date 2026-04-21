@@ -40,6 +40,15 @@ class ClassStudentCreate(BaseModel):
     enrolled_at:   date | None = None
 
 
+class StudentShort(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id:         uuid.UUID
+    first_name: str
+    last_name:  str
+    email:      str
+
+
 class ClassStudentResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -48,6 +57,7 @@ class ClassStudentResponse(BaseModel):
     student_id:    uuid.UUID
     academic_year: int
     enrolled_at:   date
+    student:       StudentShort | None = None
 
 
 # ── Учитель в классе ──────────────────────────────────────────────────────────

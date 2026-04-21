@@ -64,7 +64,7 @@ async def get_lesson(
 async def create_lesson(
     body: LessonCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(_ADMIN_VP_TEACHER),
+    current_user: User = Depends(_ADMIN_VP),
 ):
     if current_user.role == "teacher":
         if body.teacher_id != current_user.id:
@@ -103,7 +103,11 @@ async def update_lesson(
     if current_user.role == "teacher" and lesson.teacher_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав")
 
-    for field, value in body.model_dump(exclude_unset=True).items():
+    data = body.model_dump(exclude_unset=True)
+    if current_user.role == "teacher":
+        data.pop("date", None)  # teachers can only update topic
+
+    for field, value in data.items():
         setattr(lesson, field, value)
 
     await db.commit()
@@ -115,14 +119,11 @@ async def update_lesson(
 async def delete_lesson(
     lesson_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(_ADMIN_VP_TEACHER),
+    _: User = Depends(_ADMIN_VP),
 ):
     lesson = await db.get(Lesson, lesson_id)
     if not lesson:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Урок не найден")
-
-    if current_user.role == "teacher" and lesson.teacher_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав")
 
     await db.delete(lesson)
     await db.commit()

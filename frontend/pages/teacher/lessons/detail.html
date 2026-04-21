@@ -195,8 +195,8 @@
             return;
         }
         tbody.innerHTML = grades.map(g => {
-            const student = students.find(s => s.student_id === g.student_id);
-            const name = student ? `${student.last_name} ${student.first_name}` : '—';
+            const cs = students.find(s => s.student_id === g.student_id);
+            const name = cs?.student ? `${cs.student.last_name} ${cs.student.first_name}` : '—';
             return `<tr>
                 <td>${name}</td>
                 <td><span class="badge badge-${GRADE_COLORS[g.value]} px-2 py-1" style="font-size:1rem">${g.value}</span></td>
@@ -223,14 +223,15 @@
         tbody.innerHTML = students.map(s => {
             const att = attendanceMap[s.student_id];
             const info = att ? ATTENDANCE_LABELS[att.status] : null;
+            const name = s.student ? `${s.student.last_name} ${s.student.first_name}` : '—';
             return `<tr>
-                <td>${s.last_name} ${s.first_name}</td>
+                <td>${name}</td>
                 <td>${att
                     ? `<span class="badge badge-${info.color}">${info.label}</span>`
                     : '<span class="text-muted">—</span>'}</td>
                 <td>
                     <button class="btn btn-xs btn-${att ? 'info' : 'success'}"
-                        onclick="openAttModal('${s.student_id}','${s.last_name} ${s.first_name}','${att ? att.status : 'present'}','${att ? att.id : ''}')"
+                        onclick="openAttModal('${s.student_id}','${name.replace(/'/g,"\\'")}','${att ? att.status : 'present'}','${att ? att.id : ''}')"
                         title="${att ? 'Изменить' : 'Отметить'}">
                         <i class="fas fa-${att ? 'edit' : 'plus'}"></i>
                     </button>
@@ -260,7 +261,7 @@
         students.filter(s => !gradesMap[s.student_id]).forEach(s => {
             const opt = document.createElement('option');
             opt.value = s.student_id;
-            opt.textContent = `${s.last_name} ${s.first_name}`;
+            opt.textContent = s.student ? `${s.student.last_name} ${s.student.first_name}` : s.student_id;
             sel.appendChild(opt);
         });
     });

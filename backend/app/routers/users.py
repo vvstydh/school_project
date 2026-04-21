@@ -9,6 +9,7 @@ from sqlalchemy.orm import selectinload
 from app.core.database import get_db
 from app.core.security import hash_password
 from app.dependencies import get_current_user, require_role
+from app.models.class_ import TeacherClass, ClassStudent
 from app.models.user import User, TeacherProfile, StudentProfile, parent_student
 from app.schemas.user import (
     UserCreate, UserUpdate, UserResponse,
@@ -21,6 +22,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 _ADMIN = require_role("admin")
 _ADMIN_VP = require_role("admin", "vice_principal")
+_ADMIN_VP_TEACHER = require_role("admin", "vice_principal", "teacher")
 
 
 def _user_opts():
@@ -41,8 +43,28 @@ async def _get_user_full(db: AsyncSession, user_id: uuid.UUID) -> User | None:
 @router.get("/", response_model=list[UserResponse], status_code=200, summary="Список пользователей")
 async def list_users(
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(_ADMIN_VP),
+    current_user: User = Depends(_ADMIN_VP_TEACHER),
 ):
+    if current_user.role == "teacher":
+        # Return only students/parents from teacher's classes
+        class_ids_q = select(TeacherClass.class_id).where(TeacherClass.teacher_id == current_user.id)
+        tc_res = await db.execute(class_ids_q)
+        class_ids = [r[0] for r in tc_res]
+        if not class_ids:
+            return []
+        student_ids_q = select(ClassStudent.student_id).where(ClassStudent.class_id.in_(class_ids))
+        cs_res = await db.execute(student_ids_q)
+        student_ids = [r[0] for r in cs_res]
+        ps_res = await db.execute(
+            select(parent_student.c.parent_id).where(parent_student.c.student_id.in_(student_ids))
+        )
+        parent_ids = [r[0] for r in ps_res]
+        all_ids = list(set(student_ids + parent_ids))
+        if not all_ids:
+            return []
+        result = await db.execute(select(User).where(User.id.in_(all_ids)).options(*_user_opts()))
+        return result.scalars().all()
+
     result = await db.execute(select(User).options(*_user_opts()))
     return result.scalars().all()
 

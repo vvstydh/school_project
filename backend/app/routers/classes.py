@@ -25,9 +25,15 @@ _ADMIN_VP_TEACHER = require_role("admin", "vice_principal", "teacher")
 @router.get("/", response_model=list[ClassResponse], status_code=200, summary="Список классов")
 async def list_classes(
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(_ADMIN_VP_TEACHER),
+    current_user: User = Depends(_ADMIN_VP_TEACHER),
 ):
-    result = await db.execute(select(Class).order_by(Class.academic_year, Class.name))
+    if current_user.role == "teacher":
+        my_class_ids = select(TeacherClass.class_id).where(TeacherClass.teacher_id == current_user.id)
+        result = await db.execute(
+            select(Class).where(Class.id.in_(my_class_ids)).order_by(Class.academic_year, Class.name)
+        )
+    else:
+        result = await db.execute(select(Class).order_by(Class.academic_year, Class.name))
     return result.scalars().all()
 
 
