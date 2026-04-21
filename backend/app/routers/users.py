@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.core.security import hash_password
@@ -22,6 +23,19 @@ _ADMIN = require_role("admin")
 _ADMIN_VP = require_role("admin", "vice_principal")
 
 
+def _user_opts():
+    return [
+        selectinload(User.teacher_profile),
+        selectinload(User.student_profile),
+        selectinload(User.children),
+    ]
+
+
+async def _get_user_full(db: AsyncSession, user_id: uuid.UUID) -> User | None:
+    result = await db.execute(select(User).where(User.id == user_id).options(*_user_opts()))
+    return result.scalar_one_or_none()
+
+
 # ── Пользователи ─────────────────────────────────────────────────────────────
 
 @router.get("/", response_model=list[UserResponse], status_code=200, summary="Список пользователей")
@@ -29,7 +43,7 @@ async def list_users(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(_ADMIN_VP),
 ):
-    result = await db.execute(select(User))
+    result = await db.execute(select(User).options(*_user_opts()))
     return result.scalars().all()
 
 
@@ -47,7 +61,7 @@ async def get_user(
     if current_user.role not in ("admin", "vice_principal") and current_user.id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав")
 
-    user = await db.get(User, user_id)
+    user = await _get_user_full(db, user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден")
     return user
@@ -77,7 +91,7 @@ async def create_user(
     )
     db.add(user)
     await db.commit()
-    await db.refresh(user)
+    user = await _get_user_full(db, user.id)
     return user
 
 
@@ -120,10 +134,11 @@ async def update_user(
 
     try:
         await db.commit()
-        await db.refresh(user)
     except IntegrityError:
         await db.rollback()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email уже занят")
+
+    user = await _get_user_full(db, user_id)
     return user
 
 
