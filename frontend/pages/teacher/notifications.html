@@ -195,16 +195,16 @@
         }
         container.innerHTML = notifs.map(n => `
             <div class="d-flex align-items-start p-3 border-bottom ${n.is_read ? '' : 'bg-light'}">
-                <i class="fas fa-bell ${n.is_read ? 'text-muted' : 'text-primary'} mr-3 mt-1 fa-lg"></i>
-                <div class="flex-grow-1">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <strong>${n.title}</strong>
-                        <small class="text-muted ml-2">${new Date(n.created_at).toLocaleString('ru')}</small>
+                <i class="fas fa-bell fa-lg ${n.is_read ? 'text-muted' : 'text-primary'} mr-3 mt-1 flex-shrink-0"></i>
+                <div class="flex-grow-1 notif-text">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <strong class="notif-title">${n.title}</strong>
+                        <small class="text-muted ml-2 flex-shrink-0">${new Date(n.created_at).toLocaleString('ru')}</small>
                     </div>
-                    <div class="text-muted mt-1">${n.body}</div>
+                    <div class="text-muted notif-body">${n.body}</div>
                 </div>
                 ${!n.is_read ? `
-                <button class="btn btn-xs btn-outline-primary ml-3" onclick="markRead('${n.id}', this)" title="Отметить прочитанным">
+                <button class="btn btn-xs btn-outline-primary ml-3 flex-shrink-0" onclick="markRead('${n.id}', this)" title="Отметить прочитанным">
                     <i class="fas fa-check"></i>
                 </button>` : ''}
             </div>`).join('');

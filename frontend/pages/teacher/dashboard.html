@@ -159,10 +159,10 @@
         } else {
             notifContainer.innerHTML = unread.map(n => `
                 <div class="d-flex p-3 border-bottom bg-light">
-                    <i class="fas fa-bell text-primary mr-3 mt-1"></i>
-                    <div>
-                        <div><strong>${n.title}</strong></div>
-                        <small class="text-muted">${n.body.slice(0, 80)}${n.body.length > 80 ? '...' : ''}</small>
+                    <i class="fas fa-bell text-primary mr-3 mt-1 flex-shrink-0"></i>
+                    <div class="notif-text">
+                        <strong class="notif-title">${n.title}</strong>
+                        <div class="text-muted small notif-body">${n.body.slice(0, 80)}${n.body.length > 80 ? '...' : ''}</div>
                     </div>
                 </div>`).join('');
         }

@@ -122,17 +122,15 @@
 
         container.innerHTML = notifs.map(n => `
             <div class="d-flex align-items-start p-3 border-bottom ${n.is_read ? '' : 'bg-light'}">
-                <div class="mr-3 mt-1">
-                    <i class="fas fa-bell ${n.is_read ? 'text-muted' : 'text-primary'}"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <div class="d-flex justify-content-between">
-                        <strong>${n.title}</strong>
-                        <small class="text-muted">${new Date(n.created_at).toLocaleString('ru')}</small>
+                <i class="fas fa-bell ${n.is_read ? 'text-muted' : 'text-primary'} mr-3 mt-1 flex-shrink-0"></i>
+                <div class="flex-grow-1 notif-text">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <strong class="notif-title">${n.title}</strong>
+                        <small class="text-muted ml-2 flex-shrink-0">${new Date(n.created_at).toLocaleString('ru')}</small>
                     </div>
-                    <div class="text-muted mt-1">${n.body}</div>
+                    <div class="text-muted notif-body">${n.body}</div>
                 </div>
-                <div class="ml-3">
+                <div class="ml-3 flex-shrink-0">
                     ${!n.is_read ? `<button class="btn btn-xs btn-outline-primary" onclick="markRead('${n.id}', this)">
                         <i class="fas fa-check"></i>
                     </button>` : ''}

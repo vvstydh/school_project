@@ -225,10 +225,10 @@
         } else {
             nc.innerHTML = unread.map(n => `
                 <div class="d-flex p-3 border-bottom bg-light">
-                    <i class="fas fa-bell text-primary mr-3 mt-1"></i>
-                    <div>
-                        <strong>${n.title}</strong>
-                        <div class="text-muted small">${n.body.slice(0, 70)}${n.body.length > 70 ? '...' : ''}</div>
+                    <i class="fas fa-bell text-primary mr-3 mt-1 flex-shrink-0"></i>
+                    <div class="notif-text">
+                        <strong class="notif-title">${n.title}</strong>
+                        <div class="text-muted small notif-body">${n.body.slice(0, 70)}${n.body.length > 70 ? '...' : ''}</div>
                     </div>
                 </div>`).join('');
         }

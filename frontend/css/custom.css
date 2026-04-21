@@ -76,3 +76,23 @@
 .spinner-overlay.active {
     display: flex;
 }
+
+/* Notification list items */
+.notif-text {
+    flex: 1 1 0;      /* basis:0 гарантирует реальную ширину контейнера, а не content-width */
+    min-width: 0;     /* flex-item должен уметь сжиматься до 0 */
+    overflow: hidden; /* ничто не вылезает за границы блока */
+}
+
+.notif-title {
+    display: block;
+    min-width: 0;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.notif-body {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: pre-line; /* переносы строк из текста, но лишние пробелы схлопываются */
+}
