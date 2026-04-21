@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аналитика — Школьный журнал</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+    <div id="navbar"></div>
+    <div id="sidebar"></div>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6"><h1 class="m-0">Аналитика успеваемости</h1></div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/pages/student/dashboard.html">Главная</a></li>
+                            <li class="breadcrumb-item active">Аналитика</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div id="alerts"></div>
+
+                <!-- Итоговые показатели -->
+                <div class="row" id="summary-row">
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-success">
+                            <div class="inner">
+                                <h3 id="overall-avg">—</h3>
+                                <p>Общий средний балл</p>
+                            </div>
+                            <div class="icon"><i class="fas fa-star"></i></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-info">
+                            <div class="inner">
+                                <h3 id="total-grades">—</h3>
+                                <p>Всего оценок</p>
+                            </div>
+                            <div class="icon"><i class="fas fa-list"></i></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-warning">
+                            <div class="inner">
+                                <h3 id="att-pct">—</h3>
+                                <p>Посещаемость</p>
+                            </div>
+                            <div class="icon"><i class="fas fa-clipboard-check"></i></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-danger">
+                            <div class="inner">
+                                <h3 id="absent-count">—</h3>
+                                <p>Пропусков</p>
+                            </div>
+                            <div class="icon"><i class="fas fa-user-times"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- По предметам -->
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-chart-bar mr-2"></i>Успеваемость по предметам</h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Предмет</th>
+                                    <th>Оценок</th>
+                                    <th>Средний балл</th>
+                                    <th>Уроков</th>
+                                    <th>Присутствовал</th>
+                                    <th>Пропустил</th>
+                                    <th>Оценки</th>
+                                </tr>
+                            </thead>
+                            <tbody id="subjects-tbody">
+                                <tr><td colspan="7" class="text-center py-3"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Четвертные оценки -->
+                <div class="card card-warning">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-calendar-check mr-2"></i>Оценки по периодам</h3>
+                        <div class="card-tools">
+                            <small class="text-white opacity-75">Средний балл за каждый период учебного года</small>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Предмет</th>
+                                        <th class="text-center" title="Сентябрь–Октябрь">1 четверть<br><small class="text-muted">Сен–Окт</small></th>
+                                        <th class="text-center" title="Ноябрь–Декабрь">2 четверть<br><small class="text-muted">Ноя–Дек</small></th>
+                                        <th class="text-center bg-light" title="Январь–Март">3 четверть<br><small class="text-muted">Янв–Мар</small></th>
+                                        <th class="text-center" title="Апрель–Июнь">4 четверть<br><small class="text-muted">Апр–Июн</small></th>
+                                        <th class="text-center bg-light" title="1–2 четверть">1 полугодие</th>
+                                        <th class="text-center bg-light" title="3–4 четверть">2 полугодие</th>
+                                        <th class="text-center table-active" title="За весь год">Годовая</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="periods-tbody">
+                                    <tr><td colspan="8" class="text-center py-3"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Посещаемость по предметам -->
+                <div class="card card-info">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-clipboard-list mr-2"></i>Посещаемость по предметам</h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Предмет</th>
+                                    <th class="text-center">Всего уроков</th>
+                                    <th class="text-center">Присутствовал</th>
+                                    <th class="text-center">Отсутствовал</th>
+                                    <th class="text-center">Опоздал</th>
+                                    <th class="text-center">Уважительная</th>
+                                    <th class="text-center">% посещаемости</th>
+                                </tr>
+                            </thead>
+                            <tbody id="att-subjects-tbody">
+                                <tr><td colspan="7" class="text-center py-3"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div>
+    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/guards.js"></script>
+<script src="/js/pages/student/common.js"></script>
+<script>
+    requireAuth('student');
+
+    // Returns quarter index 0-3 by lesson date month (Russian school year)
+    // Q1: Sep-Oct (9,10), Q2: Nov-Dec (11,12), Q3: Jan-Mar (1,2,3), Q4: Apr-Jun+ (4..8)
+    function getQuarter(dateStr) {
+        const m = new Date(dateStr).getMonth() + 1; // 1-12
+        if (m === 9 || m === 10) return 0;
+        if (m === 11 || m === 12) return 1;
+        if (m >= 1 && m <= 3)    return 2;
+        return 3; // Apr-Aug
+    }
+
+    function avgLabel(vals) {
+        if (!vals.length) return '<span class="text-muted">—</span>';
+        const avg = vals.reduce((s, v) => s + v, 0) / vals.length;
+        const color = avg >= 4.5 ? 'success' : avg >= 3.5 ? 'info' : avg >= 2.5 ? 'warning' : 'danger';
+        return `<span class="badge badge-${color} px-2">${avg.toFixed(1)}</span>`;
+    }
+
+    function pctColor(pct) {
+        if (pct >= 90) return 'success';
+        if (pct >= 75) return 'info';
+        if (pct >= 60) return 'warning';
+        return 'danger';
+    }
+
+    (async () => {
+        const me = await loadStudentComponents('analytics');
+
+        const [lessons, grades, attendances] = await Promise.all([
+            api.get('/lessons/'),
+            api.get(`/grades/?student_id=${me.id}`),
+            api.get(`/attendances/?student_id=${me.id}`),
+        ]);
+
+        const lessonsMap = {};
+        lessons.forEach(l => { lessonsMap[l.id] = l; });
+
+        // Build per-subject data
+        const subjectData = {}; // subject_name -> { grades: [], lessons: Set, attCounts: {} }
+
+        lessons.forEach(l => {
+            const s = l.subject_name || 'Неизвестно';
+            if (!subjectData[s]) subjectData[s] = { grades: [], lessons: new Set(), attCounts: { present: 0, absent: 0, late: 0, excused: 0 } };
+            subjectData[s].lessons.add(l.id);
+        });
+
+        grades.forEach(g => {
+            const l = lessonsMap[g.lesson_id];
+            if (!l) return;
+            const s = l.subject_name || 'Неизвестно';
+            if (!subjectData[s]) subjectData[s] = { grades: [], lessons: new Set(), attCounts: { present: 0, absent: 0, late: 0, excused: 0 } };
+            subjectData[s].grades.push({ value: g.value, date: l.date });
+        });
+
+        attendances.forEach(a => {
+            const l = lessonsMap[a.lesson_id];
+            if (!l) return;
+            const s = l.subject_name || 'Неизвестно';
+            if (!subjectData[s]) return;
+            if (subjectData[s].attCounts[a.status] !== undefined) subjectData[s].attCounts[a.status]++;
+        });
+
+        // Summary stats
+        const totalGrades = grades.length;
+        const overallAvg = totalGrades
+            ? (grades.reduce((s, g) => s + g.value, 0) / totalGrades).toFixed(1)
+            : '—';
+        const totalAtt = attendances.length;
+        const presentCount = attendances.filter(a => a.status === 'present').length;
+        const absentCount = attendances.filter(a => a.status === 'absent').length;
+        const attPct = totalAtt ? Math.round(presentCount / totalAtt * 100) + '%' : '—';
+
+        document.getElementById('overall-avg').textContent = overallAvg;
+        document.getElementById('total-grades').textContent = totalGrades;
+        document.getElementById('att-pct').textContent = attPct;
+        document.getElementById('absent-count').textContent = absentCount;
+
+        // Subjects table
+        const subjNames = Object.keys(subjectData).sort();
+        const subjTbody = document.getElementById('subjects-tbody');
+        if (!subjNames.length) {
+            subjTbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-2">Нет данных</td></tr>';
+        } else {
+            subjTbody.innerHTML = subjNames.map(s => {
+                const d = subjectData[s];
+                const vals = d.grades.map(g => g.value);
+                const avg = vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : null;
+                const avgColor = avg ? (parseFloat(avg) >= 4.5 ? 'success' : parseFloat(avg) >= 3.5 ? 'info' : parseFloat(avg) >= 2.5 ? 'warning' : 'danger') : null;
+                const pills = vals.map(v => `<span class="badge badge-${GRADE_COLORS[v]} mr-1">${v}</span>`).join('');
+                const attTotal = Object.values(d.attCounts).reduce((a, b) => a + b, 0);
+                const pct = attTotal ? Math.round(d.attCounts.present / attTotal * 100) : null;
+                return `<tr>
+                    <td><strong>${s}</strong></td>
+                    <td class="text-center">${vals.length}</td>
+                    <td class="text-center">${avg ? `<span class="badge badge-${avgColor} px-2" style="font-size:1rem">${avg}</span>` : '<span class="text-muted">—</span>'}</td>
+                    <td class="text-center">${d.lessons.size}</td>
+                    <td class="text-center text-success">${d.attCounts.present}</td>
+                    <td class="text-center text-danger">${d.attCounts.absent + d.attCounts.late}</td>
+                    <td>${pills || '<span class="text-muted">—</span>'}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        // Periods table (quarters/semesters/year)
+        const periodsTbody = document.getElementById('periods-tbody');
+        // Build per-subject per-quarter grade values
+        const periodData = {}; // subject -> [Q0vals, Q1vals, Q2vals, Q3vals]
+        subjNames.forEach(s => {
+            periodData[s] = [[], [], [], []];
+        });
+        grades.forEach(g => {
+            const l = lessonsMap[g.lesson_id];
+            if (!l) return;
+            const s = l.subject_name || 'Неизвестно';
+            if (!periodData[s]) return;
+            const q = getQuarter(l.date);
+            periodData[s][q].push(g.value);
+        });
+
+        if (!subjNames.length) {
+            periodsTbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-2">Нет данных</td></tr>';
+        } else {
+            periodsTbody.innerHTML = subjNames.map(s => {
+                const [q0, q1, q2, q3] = periodData[s];
+                const sem1 = [...q0, ...q1];
+                const sem2 = [...q2, ...q3];
+                const all  = [...sem1, ...sem2];
+                return `<tr>
+                    <td><strong>${s}</strong></td>
+                    <td class="text-center">${avgLabel(q0)}</td>
+                    <td class="text-center">${avgLabel(q1)}</td>
+                    <td class="text-center bg-light">${avgLabel(q2)}</td>
+                    <td class="text-center">${avgLabel(q3)}</td>
+                    <td class="text-center bg-light">${avgLabel(sem1)}</td>
+                    <td class="text-center bg-light">${avgLabel(sem2)}</td>
+                    <td class="text-center table-active"><strong>${avgLabel(all)}</strong></td>
+                </tr>`;
+            }).join('');
+        }
+
+        // Attendance by subject table
+        const attTbody = document.getElementById('att-subjects-tbody');
+        if (!subjNames.length) {
+            attTbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-2">Нет данных</td></tr>';
+        } else {
+            attTbody.innerHTML = subjNames.map(s => {
+                const d = subjectData[s];
+                const c = d.attCounts;
+                const recorded = c.present + c.absent + c.late + c.excused;
+                const pct = recorded ? Math.round((c.present + c.late + c.excused) / recorded * 100) : null;
+                const color = pct !== null ? pctColor(pct) : 'secondary';
+                return `<tr>
+                    <td><strong>${s}</strong></td>
+                    <td class="text-center">${d.lessons.size}</td>
+                    <td class="text-center text-success"><strong>${c.present}</strong></td>
+                    <td class="text-center text-danger">${c.absent}</td>
+                    <td class="text-center text-warning">${c.late}</td>
+                    <td class="text-center text-info">${c.excused}</td>
+                    <td class="text-center">${pct !== null ? `<span class="badge badge-${color} px-2">${pct}%</span>` : '<span class="text-muted">—</span>'}</td>
+                </tr>`;
+            }).join('');
+        }
+    })();
+</script>
+</body>
+</html>

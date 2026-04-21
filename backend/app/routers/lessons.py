@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.dependencies import get_current_user, require_role
-from app.models.class_ import TeacherClass
+from app.models.class_ import ClassStudent, TeacherClass
 from app.models.lesson import Lesson
 from app.models.user import User
 from app.schemas.lesson import LessonCreate, LessonUpdate, LessonResponse
@@ -33,13 +33,21 @@ async def _assert_teacher_owns_class(teacher_id: uuid.UUID, class_id: uuid.UUID,
 async def list_lessons(
     class_id: uuid.UUID | None = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(_ADMIN_VP_TEACHER),
+    current_user: User = Depends(get_current_user),
 ):
+    if current_user.role not in ("admin", "vice_principal", "teacher", "student"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав")
+
     query = select(Lesson)
     if class_id:
         query = query.where(Lesson.class_id == class_id)
+
     if current_user.role == "teacher":
         query = query.where(Lesson.teacher_id == current_user.id)
+    elif current_user.role == "student":
+        my_class_ids = select(ClassStudent.class_id).where(ClassStudent.student_id == current_user.id)
+        query = query.where(Lesson.class_id.in_(my_class_ids))
+
     result = await db.execute(query.order_by(Lesson.date.desc()))
     return result.scalars().all()
 

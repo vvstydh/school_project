@@ -23,11 +23,14 @@ class LessonUpdate(BaseModel):
 class LessonResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id:         uuid.UUID
-    class_id:   uuid.UUID
-    teacher_id: uuid.UUID
-    subject_id: uuid.UUID
-    date:       Date
-    topic:      str | None
-    created_at: datetime
-    updated_at: datetime
+    id:           uuid.UUID
+    class_id:     uuid.UUID
+    teacher_id:   uuid.UUID
+    subject_id:   uuid.UUID
+    date:         Date
+    topic:        str | None
+    created_at:   datetime
+    updated_at:   datetime
+    subject_name: str | None = None
+    class_name:   str | None = None
+    teacher_name: str | None = None

@@ -26,3 +26,17 @@ class Lesson(Base):
     subject:  Mapped["Subject"] = relationship("Subject", back_populates="lessons", lazy="selectin")
     grades:      Mapped[list["Grade"]]      = relationship("Grade", back_populates="lesson", lazy="selectin")
     attendances: Mapped[list["Attendance"]] = relationship("Attendance", back_populates="lesson", lazy="selectin")
+
+    @property
+    def subject_name(self) -> str | None:
+        return self.subject.name if self.subject else None
+
+    @property
+    def class_name(self) -> str | None:
+        return self.class_.name if self.class_ else None
+
+    @property
+    def teacher_name(self) -> str | None:
+        if self.teacher:
+            return f"{self.teacher.last_name} {self.teacher.first_name}"
+        return None
