@@ -106,12 +106,11 @@ CREATE TABLE subjects (
 -- ============================================================
 
 CREATE TABLE classes (
-    id                UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-    name              VARCHAR(10) NOT NULL,
-    academic_year     SMALLINT    NOT NULL,
-    vice_principal_id UUID        NULL,
-    created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    name          VARCHAR(10) NOT NULL,
+    academic_year SMALLINT    NOT NULL,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
 
     CONSTRAINT uq_classes_name_year
         UNIQUE (name, academic_year),
@@ -120,16 +119,8 @@ CREATE TABLE classes (
         CHECK (name ~ '^[1-9][0-9]?[А-ЯЁ]$'),
 
     CONSTRAINT chk_classes_academic_year
-        CHECK (academic_year BETWEEN 2000 AND 2100),
-
-    CONSTRAINT fk_classes_vice_principal
-        FOREIGN KEY (vice_principal_id)
-        REFERENCES users (id)
-        ON DELETE SET NULL
+        CHECK (academic_year BETWEEN 2000 AND 2100)
 );
-
-CREATE INDEX idx_classes_vice_principal ON classes (vice_principal_id)
-    WHERE vice_principal_id IS NOT NULL;
 
 
 -- ============================================================
@@ -165,15 +156,11 @@ CREATE TABLE student_profiles (
     id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id       UUID        NOT NULL,
     date_of_birth DATE        NULL,
-    record_number VARCHAR(50) NULL,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
 
     CONSTRAINT uq_student_profiles_user
         UNIQUE (user_id),
-
-    CONSTRAINT uq_student_profiles_record
-        UNIQUE (record_number),
 
     CONSTRAINT fk_student_profiles_user
         FOREIGN KEY (user_id)
@@ -186,15 +173,6 @@ CREATE TABLE student_profiles (
             OR (
                 date_of_birth BETWEEN '1990-01-01'
                 AND (CURRENT_DATE - INTERVAL '5 years')::DATE
-            )
-        ),
-
-    CONSTRAINT chk_student_profiles_record
-        CHECK (
-            record_number IS NULL
-            OR (
-                LENGTH(record_number) BETWEEN 1 AND 50
-                AND record_number ~ '^[А-ЯЁа-яёA-Za-z0-9\-\/]+$'
             )
         )
 );

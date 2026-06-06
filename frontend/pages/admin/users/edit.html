@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Редактировать пользователя — Школьный журнал</title>
+    <title>Редактировать пользователя — Зурнал</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -129,10 +129,7 @@
                                     <label>Дата рождения</label>
                                     <input type="date" class="form-control" id="student-dob">
                                 </div>
-                                <div class="form-group">
-                                    <label>Номер личного дела</label>
-                                    <input type="text" class="form-control" id="student-record" placeholder="Например: ЛД-2024-001">
-                                </div>
+
                             </div>
                             <div class="card-footer">
                                 <button type="button" class="btn btn-success" id="save-student-profile">
@@ -215,7 +212,7 @@
         </div>
     </div>
 
-    <footer class="main-footer"><strong>Школьный журнал</strong> &copy; 2024</footer>
+    <footer class="main-footer"><strong>Зурнал</strong> &copy; 2024</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
@@ -289,8 +286,7 @@
         if (currentUser.role === 'student' && currentUser.student_profile) {
             hasStudentProfile = true;
             const p = currentUser.student_profile;
-            if (p.date_of_birth) document.getElementById('student-dob').value    = p.date_of_birth;
-            if (p.record_number) document.getElementById('student-record').value = p.record_number;
+            if (p.date_of_birth) document.getElementById('student-dob').value = p.date_of_birth;
         }
 
         // Populate children
@@ -369,13 +365,12 @@
     });
 
     document.getElementById('save-student-profile').addEventListener('click', async () => {
-        const dob    = document.getElementById('student-dob').value    || null;
-        const record = document.getElementById('student-record').value.trim() || null;
+        const dob = document.getElementById('student-dob').value || null;
         try {
             if (hasStudentProfile) {
-                await api.patch(`/users/${userId}/student-profile`, { date_of_birth: dob, record_number: record });
+                await api.patch(`/users/${userId}/student-profile`, { date_of_birth: dob });
             } else {
-                await api.post(`/users/${userId}/student-profile`, { date_of_birth: dob, record_number: record });
+                await api.post(`/users/${userId}/student-profile`, { date_of_birth: dob });
                 hasStudentProfile = true;
             }
             showAlert('Профиль ученика сохранён', 'success');

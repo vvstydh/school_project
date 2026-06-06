@@ -16,9 +16,8 @@ def _check_class_name(v: str | None) -> str | None:
 # ── Класс ─────────────────────────────────────────────────────────────────────
 
 class ClassCreate(BaseModel):
-    name:              str       = Field(..., min_length=2, max_length=4)
-    academic_year:     int       = Field(..., ge=2000, le=2100)
-    vice_principal_id: uuid.UUID | None = None
+    name:          str = Field(..., min_length=2, max_length=4)
+    academic_year: int = Field(..., ge=2000, le=2100)
 
     @field_validator('name', mode='after')
     @classmethod
@@ -27,9 +26,8 @@ class ClassCreate(BaseModel):
 
 
 class ClassUpdate(BaseModel):
-    name:              str | None       = Field(None, min_length=2, max_length=4)
-    academic_year:     int | None       = Field(None, ge=2000, le=2100)
-    vice_principal_id: uuid.UUID | None = None
+    name:          str | None = Field(None, min_length=2, max_length=4)
+    academic_year: int | None = Field(None, ge=2000, le=2100)
 
     @field_validator('name', mode='after')
     @classmethod
@@ -40,12 +38,11 @@ class ClassUpdate(BaseModel):
 class ClassResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id:                uuid.UUID
-    name:              str
-    academic_year:     int
-    vice_principal_id: uuid.UUID | None
-    created_at:        datetime
-    updated_at:        datetime
+    id:            uuid.UUID
+    name:          str
+    academic_year: int
+    created_at:    datetime
+    updated_at:    datetime
 
 
 # ── Ученик в классе ───────────────────────────────────────────────────────────

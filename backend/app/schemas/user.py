@@ -42,7 +42,6 @@ class TeacherProfileResponse(BaseModel):
 
 class StudentProfileCreate(BaseModel):
     date_of_birth: str | None = None
-    record_number: str | None = Field(None, min_length=1, max_length=50)
 
     @field_validator('date_of_birth', mode='after')
     @classmethod
@@ -54,7 +53,6 @@ class StudentProfileCreate(BaseModel):
 
 class StudentProfileUpdate(BaseModel):
     date_of_birth: str | None = None
-    record_number: str | None = Field(None, min_length=1, max_length=50)
 
     @field_validator('date_of_birth', mode='after')
     @classmethod
@@ -70,7 +68,6 @@ class StudentProfileResponse(BaseModel):
     id:            uuid.UUID
     user_id:       uuid.UUID
     date_of_birth: str | None
-    record_number: str | None
     created_at:    datetime
     updated_at:    datetime
 

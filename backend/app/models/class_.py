@@ -12,18 +12,14 @@ from app.core.database import Base
 class Class(Base):
     __tablename__ = "classes"
 
-    id:                Mapped[uuid.UUID]       = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name:              Mapped[str]             = mapped_column(String(10), nullable=False)
-    academic_year:     Mapped[int]             = mapped_column(SmallInteger, nullable=False)
-    vice_principal_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    created_at:        Mapped[datetime]        = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at:        Mapped[datetime]        = mapped_column(DateTime(timezone=True), server_default=func.now())
+    id:            Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name:          Mapped[str]      = mapped_column(String(10), nullable=False)
+    academic_year: Mapped[int]      = mapped_column(SmallInteger, nullable=False)
+    created_at:    Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at:    Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (UniqueConstraint("name", "academic_year", name="uq_classes_name_year"),)
 
-    vice_principal: Mapped["User | None"] = relationship(
-        "User", back_populates="managed_classes", foreign_keys=[vice_principal_id], lazy="selectin",
-    )
     class_students: Mapped[list["ClassStudent"]] = relationship(
         "ClassStudent", back_populates="class_", lazy="selectin",
     )

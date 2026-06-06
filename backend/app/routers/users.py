@@ -254,15 +254,10 @@ async def create_student_profile(
     profile = StudentProfile(
         user_id=user_id,
         date_of_birth=body.date_of_birth,
-        record_number=body.record_number,
     )
     db.add(profile)
-    try:
-        await db.commit()
-        await db.refresh(profile)
-    except IntegrityError:
-        await db.rollback()
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Номер личного дела уже занят")
+    await db.commit()
+    await db.refresh(profile)
     return profile
 
 
@@ -282,12 +277,8 @@ async def update_student_profile(
     for field, value in body.model_dump(exclude_unset=True).items():
         setattr(profile, field, value)
 
-    try:
-        await db.commit()
-        await db.refresh(profile)
-    except IntegrityError:
-        await db.rollback()
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Номер личного дела уже занят")
+    await db.commit()
+    await db.refresh(profile)
     return profile
 
 

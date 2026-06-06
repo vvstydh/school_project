@@ -16,7 +16,7 @@ const _FIELD_LABELS = {
     title:         'Заголовок',
     body:          'Текст',
     date_of_birth: 'Дата рождения',
-    record_number: 'Номер личного дела',
+
     status:        'Статус',
     subject_id:    'Предмет',
     class_id:      'Класс',

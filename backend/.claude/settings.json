@@ -1,5 +1,0 @@
-{
-  "model": "claude-sonnet-4-5",
-  "context_files": ["CLAUDE.md"],
-  "auto_approve": false
-}

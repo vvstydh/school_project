@@ -1,3 +1,15 @@
+/* Brand icon vertical alignment */
+.brand-link {
+    display: flex !important;
+    align-items: center;
+}
+.brand-link i.brand-image {
+    float: none !important;
+    margin-top: 0 !important;
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
 /* Login page */
 .login-page {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);

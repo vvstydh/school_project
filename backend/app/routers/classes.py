@@ -58,7 +58,6 @@ async def create_class(
     cls = Class(
         name=body.name,
         academic_year=body.academic_year,
-        vice_principal_id=body.vice_principal_id,
     )
     db.add(cls)
     try:
