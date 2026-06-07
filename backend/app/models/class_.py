@@ -22,12 +22,15 @@ class Class(Base):
 
     class_students: Mapped[list["ClassStudent"]] = relationship(
         "ClassStudent", back_populates="class_", lazy="selectin",
+        cascade="all, delete-orphan",
     )
     teacher_classes: Mapped[list["TeacherClass"]] = relationship(
         "TeacherClass", back_populates="class_", lazy="selectin",
+        cascade="all, delete-orphan",
     )
     lessons: Mapped[list["Lesson"]] = relationship(
         "Lesson", back_populates="class_", lazy="selectin",
+        cascade="all, delete-orphan",
     )
 
 

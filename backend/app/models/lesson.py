@@ -24,8 +24,8 @@ class Lesson(Base):
     class_:   Mapped["Class"]   = relationship("Class", back_populates="lessons", lazy="selectin")
     teacher:  Mapped["User"]    = relationship("User", lazy="selectin", foreign_keys=[teacher_id])
     subject:  Mapped["Subject"] = relationship("Subject", back_populates="lessons", lazy="selectin")
-    grades:      Mapped[list["Grade"]]      = relationship("Grade", back_populates="lesson", lazy="selectin")
-    attendances: Mapped[list["Attendance"]] = relationship("Attendance", back_populates="lesson", lazy="selectin")
+    grades:      Mapped[list["Grade"]]      = relationship("Grade", back_populates="lesson", lazy="selectin", cascade="all, delete-orphan")
+    attendances: Mapped[list["Attendance"]] = relationship("Attendance", back_populates="lesson", lazy="selectin", cascade="all, delete-orphan")
 
     @property
     def subject_name(self) -> str | None:

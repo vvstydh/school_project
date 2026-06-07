@@ -1,6 +1,6 @@
 import re
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
@@ -41,25 +41,11 @@ class TeacherProfileResponse(BaseModel):
 # ── Профиль ученика ───────────────────────────────────────────────────────────
 
 class StudentProfileCreate(BaseModel):
-    date_of_birth: str | None = None
-
-    @field_validator('date_of_birth', mode='after')
-    @classmethod
-    def validate_dob(cls, v: str | None) -> str | None:
-        if v is not None and not re.match(r'^\d{4}-\d{2}-\d{2}$', v):
-            raise ValueError('Введите дату в формате ГГГГ-ММ-ДД')
-        return v
+    date_of_birth: date | None = None
 
 
 class StudentProfileUpdate(BaseModel):
-    date_of_birth: str | None = None
-
-    @field_validator('date_of_birth', mode='after')
-    @classmethod
-    def validate_dob(cls, v: str | None) -> str | None:
-        if v is not None and not re.match(r'^\d{4}-\d{2}-\d{2}$', v):
-            raise ValueError('Введите дату в формате ГГГГ-ММ-ДД')
-        return v
+    date_of_birth: date | None = None
 
 
 class StudentProfileResponse(BaseModel):
@@ -67,7 +53,7 @@ class StudentProfileResponse(BaseModel):
 
     id:            uuid.UUID
     user_id:       uuid.UUID
-    date_of_birth: str | None
+    date_of_birth: date | None
     created_at:    datetime
     updated_at:    datetime
 
