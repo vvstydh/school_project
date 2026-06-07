@@ -4,10 +4,10 @@
 #  Тестирует каждый эндпоинт. Созданные данные удаляются.
 #
 #  Использование:
-#    ./test_api.sh [BASE_URL] [ADMIN_EMAIL] [ADMIN_PASSWORD]
+#    ./test/test_api.sh [BASE_URL] [ADMIN_EMAIL] [ADMIN_PASSWORD]
 #
 #  Пример:
-#    ./test_api.sh http://localhost:8000 admin@admin.com 12345678
+#    ./test/test_api.sh http://localhost:8000 admin@admin.com 12345678
 # =============================================================
 
 BASE_URL="${1:-http://localhost:8000}"
