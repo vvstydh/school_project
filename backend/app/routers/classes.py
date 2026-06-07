@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.dependencies import get_current_user, require_role
 from app.models.class_ import Class, ClassStudent, TeacherClass
+from app.models.lesson import Lesson
 from app.models.user import User
 from app.schemas.class_ import (
     ClassCreate, ClassUpdate, ClassResponse,
@@ -28,7 +29,7 @@ async def list_classes(
     current_user: User = Depends(_ADMIN_VP_TEACHER),
 ):
     if current_user.role == "teacher":
-        my_class_ids = select(TeacherClass.class_id).where(TeacherClass.teacher_id == current_user.id)
+        my_class_ids = select(Lesson.class_id).where(Lesson.teacher_id == current_user.id).distinct()
         result = await db.execute(
             select(Class).where(Class.id.in_(my_class_ids)).order_by(Class.academic_year, Class.name)
         )

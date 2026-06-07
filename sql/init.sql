@@ -116,7 +116,7 @@ CREATE TABLE classes (
         UNIQUE (name, academic_year),
 
     CONSTRAINT chk_classes_name
-        CHECK (name ~ '^[1-9][0-9]?[А-ЯЁ]$'),
+        CHECK (name ~ '^([1-9]|1[01])[АБВГДЕЁЖЗИКЛМНОПРСТУФХЦЧШЩЭЮЯ]$'),
 
     CONSTRAINT chk_classes_academic_year
         CHECK (academic_year BETWEEN 2000 AND 2100)
@@ -396,6 +396,7 @@ CREATE INDEX idx_attendances_lesson  ON attendances (lesson_id);
 CREATE TABLE notifications (
     id           UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
     recipient_id UUID         NOT NULL,
+    sender_id    UUID         NULL,
     title        VARCHAR(255) NOT NULL,
     body         TEXT         NOT NULL,
     is_read      BOOLEAN      NOT NULL DEFAULT FALSE,
@@ -405,6 +406,11 @@ CREATE TABLE notifications (
         FOREIGN KEY (recipient_id)
         REFERENCES users (id)
         ON DELETE CASCADE,
+
+    CONSTRAINT fk_notifications_sender
+        FOREIGN KEY (sender_id)
+        REFERENCES users (id)
+        ON DELETE SET NULL,
 
     CONSTRAINT chk_notifications_title
         CHECK (
@@ -422,6 +428,9 @@ CREATE TABLE notifications (
 CREATE INDEX idx_notifications_recipient_unread
     ON notifications (recipient_id, is_read)
     WHERE is_read = FALSE;
+
+CREATE INDEX idx_notifications_sender
+    ON notifications (sender_id);
 
 
 -- ============================================================

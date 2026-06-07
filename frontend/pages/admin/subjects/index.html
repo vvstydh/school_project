@@ -78,7 +78,9 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label>Название предмета <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="new-name" required placeholder="Математика">
+                            <input type="text" class="form-control" id="new-name" required placeholder="Математика" autocomplete="off">
+                            <div id="new-name-error" class="invalid-feedback"></div>
+                            <small class="text-muted">Только кириллица, с заглавной буквы. Пример: Математика, Русский язык</small>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -104,7 +106,9 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label>Название предмета <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="edit-name" required>
+                            <input type="text" class="form-control" id="edit-name" required autocomplete="off">
+                            <div id="edit-name-error" class="invalid-feedback"></div>
+                            <small class="text-muted">Только кириллица, с заглавной буквы. Пример: Математика, Русский язык</small>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -153,6 +157,58 @@
 
     let editId = null, deleteId = null;
 
+    // Допустимые символы: кириллица, пробел, дефис; первая буква — заглавная
+    const SUBJECT_RE = /^[А-ЯЁ][А-ЯЁа-яё\s\-]+$/;
+
+    function validateSubjectName(value) {
+        const v = value.trim();
+        if (!v)          return 'Введите название предмета';
+        if (v.length < 2) return 'Минимум 2 символа';
+        if (v.length > 100) return 'Максимум 100 символов';
+        if (/[0-9]/.test(v))       return 'Цифры в названии предмета недопустимы';
+        if (/[a-zA-Z]/.test(v))    return 'Латинские буквы недопустимы — только кириллица';
+        if (!/^[А-ЯЁ]/.test(v))    return 'Название должно начинаться с заглавной русской буквы';
+        if (!SUBJECT_RE.test(v))   return 'Допускаются только кириллица, пробел и дефис';
+        return null;
+    }
+
+    function applyValidation(input, errorEl, value) {
+        const err = validateSubjectName(value);
+        if (err) {
+            input.classList.add('is-invalid');
+            input.classList.remove('is-valid');
+            errorEl.textContent = err;
+        } else {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+            errorEl.textContent = '';
+        }
+        return err;
+    }
+
+    function resetField(inputId, errorId) {
+        const input = document.getElementById(inputId);
+        const error = document.getElementById(errorId);
+        input.value = '';
+        input.classList.remove('is-invalid', 'is-valid');
+        error.textContent = '';
+    }
+
+    // Реальное время — create
+    const newNameInput = document.getElementById('new-name');
+    const newNameError = document.getElementById('new-name-error');
+    newNameInput.addEventListener('input', () => applyValidation(newNameInput, newNameError, newNameInput.value));
+
+    // Реальное время — edit
+    const editNameInput = document.getElementById('edit-name');
+    const editNameError = document.getElementById('edit-name-error');
+    editNameInput.addEventListener('input', () => applyValidation(editNameInput, editNameError, editNameInput.value));
+
+    // Сброс состояния при закрытии модала создания
+    document.getElementById('create-modal').addEventListener('hidden.bs.modal', () => {
+        resetField('new-name', 'new-name-error');
+    });
+
     function showAlert(msg, type = 'danger') {
         document.getElementById('alerts').innerHTML = `
             <div class="alert alert-${type} alert-dismissible fade show">
@@ -184,7 +240,9 @@
 
     function openEdit(id, name) {
         editId = id;
-        document.getElementById('edit-name').value = name;
+        editNameInput.value = name;
+        editNameInput.classList.remove('is-invalid', 'is-valid');
+        editNameError.textContent = '';
         new bootstrap.Modal(document.getElementById('edit-modal')).show();
     }
 
@@ -196,23 +254,44 @@
 
     document.getElementById('create-form').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const err = applyValidation(newNameInput, newNameError, newNameInput.value);
+        if (err) { newNameInput.focus(); return; }
+
+        const btn = document.getElementById('create-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         try {
-            await api.post('/subjects/', { name: document.getElementById('new-name').value });
+            await api.post('/subjects/', { name: newNameInput.value.trim() });
             bootstrap.Modal.getInstance(document.getElementById('create-modal')).hide();
-            document.getElementById('new-name').value = '';
             showAlert('Предмет создан', 'success');
             await loadSubjects();
-        } catch (err) { showAlert(err.message); }
+        } catch (err) {
+            showAlert(err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save"></i> Создать';
+        }
     });
 
     document.getElementById('edit-form').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const err = applyValidation(editNameInput, editNameError, editNameInput.value);
+        if (err) { editNameInput.focus(); return; }
+
+        const btn = document.getElementById('edit-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         try {
-            await api.patch(`/subjects/${editId}`, { name: document.getElementById('edit-name').value });
+            await api.patch(`/subjects/${editId}`, { name: editNameInput.value.trim() });
             bootstrap.Modal.getInstance(document.getElementById('edit-modal')).hide();
             showAlert('Предмет обновлён', 'success');
             await loadSubjects();
-        } catch (err) { showAlert(err.message); }
+        } catch (err) {
+            showAlert(err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save"></i> Сохранить';
+        }
     });
 
     document.getElementById('confirm-delete').addEventListener('click', async () => {

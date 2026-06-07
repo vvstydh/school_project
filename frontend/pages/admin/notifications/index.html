@@ -36,7 +36,18 @@
                     <div class="col-md-8">
                         <div class="card">
                             <div class="card-header">
-                                <h3 class="card-title"><i class="fas fa-bell mr-2"></i>Мои уведомления</h3>
+                                <ul class="nav nav-tabs card-header-tabs" id="notif-tabs">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" href="#" id="tab-inbox" onclick="switchTab('inbox'); return false;">
+                                            <i class="fas fa-inbox mr-1"></i>Входящие
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#" id="tab-sent" onclick="switchTab('sent'); return false;">
+                                            <i class="fas fa-paper-plane mr-1"></i>Отправленные
+                                        </a>
+                                    </li>
+                                </ul>
                                 <div class="card-tools">
                                     <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#send-modal">
                                         <i class="fas fa-paper-plane"></i> Отправить
@@ -103,6 +114,8 @@
 <script>
     requireAuth('admin', 'vice_principal');
 
+    let currentTab = 'inbox';
+
     function showAlert(msg, type = 'danger') {
         document.getElementById('alerts').innerHTML = `
             <div class="alert alert-${type} alert-dismissible fade show">
@@ -111,15 +124,21 @@
             </div>`;
     }
 
-    async function loadNotifications() {
-        const notifs = await api.get('/notifications/');
-        const container = document.getElementById('notifications-list');
+    function switchTab(tab) {
+        currentTab = tab;
+        document.getElementById('tab-inbox').classList.toggle('active', tab === 'inbox');
+        document.getElementById('tab-sent').classList.toggle('active', tab === 'sent');
+        if (tab === 'inbox') loadInbox(); else loadSent();
+    }
 
+    async function loadInbox() {
+        const container = document.getElementById('notifications-list');
+        container.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> Загрузка...</div>';
+        const notifs = await api.get('/notifications/');
         if (!notifs.length) {
             container.innerHTML = '<div class="text-center text-muted py-4">Нет уведомлений</div>';
             return;
         }
-
         container.innerHTML = notifs.map(n => `
             <div class="d-flex align-items-start p-3 border-bottom ${n.is_read ? '' : 'bg-light'}">
                 <i class="fas fa-bell ${n.is_read ? 'text-muted' : 'text-primary'} mr-3 mt-1 flex-shrink-0"></i>
@@ -135,6 +154,31 @@
                         <i class="fas fa-check"></i>
                     </button>` : ''}
                 </div>
+            </div>`).join('');
+    }
+
+    async function loadSent() {
+        const container = document.getElementById('notifications-list');
+        container.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> Загрузка...</div>';
+        const notifs = await api.get('/notifications/sent');
+        if (!notifs.length) {
+            container.innerHTML = '<div class="text-center text-muted py-4">Нет отправленных уведомлений</div>';
+            return;
+        }
+        container.innerHTML = notifs.map(n => `
+            <div class="d-flex align-items-start p-3 border-bottom">
+                <i class="fas fa-paper-plane text-success mr-3 mt-1 flex-shrink-0"></i>
+                <div class="flex-grow-1 notif-text">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <strong class="notif-title">${n.title}</strong>
+                        <small class="text-muted ml-2 flex-shrink-0">${new Date(n.created_at).toLocaleString('ru')}</small>
+                    </div>
+                    <div class="text-muted notif-body">${n.body}</div>
+                    <small class="text-muted"><i class="fas fa-user mr-1"></i>Получатель ID: ${n.recipient_id}</small>
+                </div>
+                <span class="badge badge-${n.is_read ? 'success' : 'secondary'} ml-3 flex-shrink-0">
+                    ${n.is_read ? 'Прочитано' : 'Не прочитано'}
+                </span>
             </div>`).join('');
     }
 
@@ -157,7 +201,7 @@
             bootstrap.Modal.getInstance(document.getElementById('send-modal')).hide();
             e.target.reset();
             showAlert('Уведомление отправлено', 'success');
-            await loadNotifications();
+            if (currentTab === 'sent') loadSent(); else loadInbox();
         } catch (err) { showAlert(err.message); }
     });
 
@@ -188,7 +232,7 @@
 
     (async () => {
         await loadComponents();
-        await Promise.all([loadNotifications(), loadRecipients()]);
+        await Promise.all([loadInbox(), loadRecipients()]);
     })();
 </script>
 </body>

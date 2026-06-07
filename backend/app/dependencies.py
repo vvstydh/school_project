@@ -18,6 +18,7 @@ def _user_options():
         selectinload(User.teacher_profile),
         selectinload(User.student_profile),
         selectinload(User.children),
+        selectinload(User.parents),
     ]
 
 

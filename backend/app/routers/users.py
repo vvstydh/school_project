@@ -10,6 +10,7 @@ from app.core.database import get_db
 from app.core.security import hash_password
 from app.dependencies import get_current_user, require_role
 from app.models.class_ import TeacherClass, ClassStudent
+from app.models.lesson import Lesson
 from app.models.user import User, TeacherProfile, StudentProfile, parent_student
 from app.schemas.user import (
     UserCreate, UserUpdate, UserResponse,
@@ -30,6 +31,7 @@ def _user_opts():
         selectinload(User.teacher_profile),
         selectinload(User.student_profile),
         selectinload(User.children),
+        selectinload(User.parents),
     ]
 
 
@@ -46,14 +48,16 @@ async def list_users(
     current_user: User = Depends(_ADMIN_VP_TEACHER),
 ):
     if current_user.role == "teacher":
-        # Return only students/parents from teacher's classes
-        class_ids_q = select(TeacherClass.class_id).where(TeacherClass.teacher_id == current_user.id)
-        tc_res = await db.execute(class_ids_q)
-        class_ids = [r[0] for r in tc_res]
+        # классы из уроков учителя (не зависит от teacher_classes)
+        lesson_res = await db.execute(
+            select(Lesson.class_id).where(Lesson.teacher_id == current_user.id).distinct()
+        )
+        class_ids = [r[0] for r in lesson_res]
         if not class_ids:
             return []
-        student_ids_q = select(ClassStudent.student_id).where(ClassStudent.class_id.in_(class_ids))
-        cs_res = await db.execute(student_ids_q)
+        cs_res = await db.execute(
+            select(ClassStudent.student_id).where(ClassStudent.class_id.in_(class_ids))
+        )
         student_ids = [r[0] for r in cs_res]
         ps_res = await db.execute(
             select(parent_student.c.parent_id).where(parent_student.c.student_id.in_(student_ids))
@@ -81,7 +85,19 @@ async def get_user(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("admin", "vice_principal") and current_user.id != user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав")
+        if current_user.role == "teacher":
+            # учитель может получить данные студента из своих классов (для поиска родителей)
+            lesson_class_ids = select(Lesson.class_id).where(Lesson.teacher_id == current_user.id)
+            cs = await db.execute(
+                select(ClassStudent).where(
+                    ClassStudent.student_id == user_id,
+                    ClassStudent.class_id.in_(lesson_class_ids),
+                )
+            )
+            if not cs.scalar_one_or_none():
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав")
+        else:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав")
 
     user = await _get_user_full(db, user_id)
     if not user:

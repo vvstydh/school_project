@@ -8,7 +8,7 @@ from app.core.database import get_db
 from app.dependencies import get_current_user, require_role
 from app.models.notification import Notification
 from app.models.user import User
-from app.schemas.notification import NotificationCreate, NotificationResponse
+from app.schemas.notification import NotificationCreate, NotificationResponse, SenderShort
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
@@ -27,6 +27,20 @@ async def list_notifications(
     if unread_only:
         query = query.where(Notification.is_read == False)  # noqa: E712
     result = await db.execute(query.order_by(Notification.created_at.desc()))
+    return result.scalars().all()
+
+
+@router.get("/sent", response_model=list[NotificationResponse], status_code=200,
+            summary="Список отправленных уведомлений текущего пользователя")
+async def list_sent_notifications(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(_ADMIN_VP_TEACHER),
+):
+    result = await db.execute(
+        select(Notification)
+        .where(Notification.sender_id == current_user.id)
+        .order_by(Notification.created_at.desc())
+    )
     return result.scalars().all()
 
 
@@ -49,7 +63,7 @@ async def get_notification(
 async def create_notification(
     body: NotificationCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(_ADMIN_VP_TEACHER),
+    current_user: User = Depends(_ADMIN_VP_TEACHER),
 ):
     recipient = await db.get(User, body.recipient_id)
     if not recipient:
@@ -57,6 +71,7 @@ async def create_notification(
 
     notification = Notification(
         recipient_id=body.recipient_id,
+        sender_id=current_user.id,
         title=body.title,
         body=body.body,
     )

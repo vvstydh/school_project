@@ -43,13 +43,18 @@
                                 <div class="card-body">
                                     <div class="form-group">
                                         <label>Название класса <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" name="name" required pattern="^[1-9][0-9]?[А-ЯЁ]$">
+                                        <input type="text" class="form-control" name="name" id="name-input"
+                                               required maxlength="3" autocomplete="off">
+                                        <small class="text-muted">Номер 1–11 + буква (кроме Й, Ъ, Ы, Ь). Пример: 1А, 9Б, 11В</small>
+                                        <div id="name-error" class="invalid-feedback"></div>
                                     </div>
                                     <div class="form-group">
-                                        <label>Учебный год <span class="text-danger">*</span></label>
-                                        <input type="number" class="form-control" name="academic_year" required min="2000" max="2100">
+                                        <label>Учебный год</label>
+                                        <div class="form-control-plaintext">
+                                            <strong id="academic-year-display">—</strong>
+                                            <small class="text-muted ml-2">(не изменяется)</small>
+                                        </div>
                                     </div>
-
                                 </div>
                                 <div class="card-footer">
                                     <button type="submit" class="btn btn-primary" id="submit-btn">
@@ -82,6 +87,23 @@
     const classId = new URLSearchParams(window.location.search).get('id');
     if (!classId) window.location.href = '/pages/admin/classes/index.html';
 
+    const CLASS_NAME_RE = /^([1-9]|1[01])[АБВГДЕЁЖЗИКЛМНОПРСТУФХЦЧШЩЭЮЯ]$/;
+    const FORBIDDEN_LETTERS = 'ЙЪЫЬ';
+
+    function validateClassName(value) {
+        if (!value) return 'Введите название класса';
+        const numMatch = value.match(/^(\d+)/);
+        if (!numMatch) return 'Название должно начинаться с цифры (1–11)';
+        const num = parseInt(numMatch[1]);
+        if (num < 1 || num > 11) return `Номер класса ${num} недопустим — допустимо от 1 до 11`;
+        const letter = value.slice(numMatch[1].length);
+        if (!letter) return 'Добавьте букву класса (например: А, Б, В)';
+        if (letter.length > 1) return 'Буква класса — один символ';
+        if (FORBIDDEN_LETTERS.includes(letter)) return `Буква «${letter}» не используется в названиях классов`;
+        if (!CLASS_NAME_RE.test(value)) return 'Буква должна быть заглавной кириллицей';
+        return null;
+    }
+
     function showAlert(msg, type = 'danger') {
         document.getElementById('alerts').innerHTML = `
             <div class="alert alert-${type} alert-dismissible fade show">
@@ -89,6 +111,26 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>`;
     }
+
+    const nameInput = document.getElementById('name-input');
+    const nameError = document.getElementById('name-error');
+
+    nameInput.addEventListener('input', () => {
+        const pos = nameInput.selectionStart;
+        nameInput.value = nameInput.value.toUpperCase();
+        nameInput.setSelectionRange(pos, pos);
+
+        const err = validateClassName(nameInput.value.trim());
+        if (err) {
+            nameInput.classList.add('is-invalid');
+            nameInput.classList.remove('is-valid');
+            nameError.textContent = err;
+        } else {
+            nameInput.classList.remove('is-invalid');
+            nameInput.classList.add('is-valid');
+            nameError.textContent = '';
+        }
+    });
 
     async function loadComponents() {
         const role = sessionStorage.getItem('role');
@@ -106,25 +148,29 @@
 
     async function loadData() {
         const classData = await api.get(`/classes/${classId}`);
-        const form = document.getElementById('edit-form');
-        form.name.value          = classData.name;
-        form.academic_year.value = classData.academic_year;
+        nameInput.value = classData.name;
+        const y = classData.academic_year;
+        document.getElementById('academic-year-display').textContent = `${y}–${y + 1}`;
     }
 
     document.getElementById('edit-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('submit-btn');
+
+        const name = nameInput.value.trim().toUpperCase();
+        const validationError = validateClassName(name);
+        if (validationError) {
+            nameInput.classList.add('is-invalid');
+            nameError.textContent = validationError;
+            nameInput.focus();
+            return;
+        }
+
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Сохранение...';
 
-        const fd = new FormData(e.target);
-        const body = {
-            name:          fd.get('name'),
-            academic_year: parseInt(fd.get('academic_year')),
-        };
-
         try {
-            await api.patch(`/classes/${classId}`, body);
+            await api.patch(`/classes/${classId}`, { name });
             showAlert('Класс обновлён', 'success');
             setTimeout(() => window.location.href = '/pages/admin/classes/index.html', 1000);
         } catch (err) {

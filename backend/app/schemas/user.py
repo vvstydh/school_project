@@ -132,3 +132,4 @@ class UserResponse(BaseModel):
     teacher_profile: TeacherProfileResponse | None = None
     student_profile: StudentProfileResponse | None = None
     children:        list[UserShort] = []
+    parents:         list[UserShort] = []

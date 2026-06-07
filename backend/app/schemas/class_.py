@@ -4,19 +4,20 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-_CLASS_NAME_RE = re.compile(r'^[1-9][0-9]?[А-ЯЁ]$')
+# Допустимые буквы: А-Я без Й, Ъ, Ы, Ь
+_CLASS_NAME_RE = re.compile(r'^([1-9]|1[01])[АБВГДЕЁЖЗИКЛМНОПРСТУФХЦЧШЩЭЮЯ]$')
 
 
 def _check_class_name(v: str | None) -> str | None:
     if v is not None and not _CLASS_NAME_RE.match(v):
-        raise ValueError('Формат: номер от 1 до 99 и заглавная буква (например: 1А, 10Б)')
+        raise ValueError('Номер класса: 1–11, буква кириллицей (кроме Й, Ъ, Ы, Ь). Пример: 9А, 11Б')
     return v
 
 
 # ── Класс ─────────────────────────────────────────────────────────────────────
 
 class ClassCreate(BaseModel):
-    name:          str = Field(..., min_length=2, max_length=4)
+    name:          str = Field(..., min_length=2, max_length=3)
     academic_year: int = Field(..., ge=2000, le=2100)
 
     @field_validator('name', mode='after')
@@ -26,7 +27,7 @@ class ClassCreate(BaseModel):
 
 
 class ClassUpdate(BaseModel):
-    name:          str | None = Field(None, min_length=2, max_length=4)
+    name:          str | None = Field(None, min_length=2, max_length=3)
     academic_year: int | None = Field(None, ge=2000, le=2100)
 
     @field_validator('name', mode='after')

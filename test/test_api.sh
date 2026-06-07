@@ -14,11 +14,11 @@ BASE_URL="${1:-http://localhost:8000}"
 ADMIN_EMAIL="${2:-admin@admin.com}"
 ADMIN_PASS="${3:-12345678}"
 
-# ── Цвета ────────────────────────────────────────────────────
+# Цвета
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 CYAN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
 
-# ── Счётчики ─────────────────────────────────────────────────
+# Счётчики
 PASS=0; FAIL=0
 declare -a FAILED_TESTS=()
 
@@ -26,7 +26,7 @@ pass() { echo -e "  ${GREEN}✓${NC} $1"; ((PASS++)) || true; }
 fail() { echo -e "  ${RED}✗${NC} $1"; ((FAIL++)) || true; FAILED_TESTS+=("$1"); }
 section() { echo -e "\n${CYAN}${BOLD}▶ $1${NC}"; }
 
-# ── ID для очистки ────────────────────────────────────────────
+# ID для очистки
 CLEANUP_NOTIF=""
 CLEANUP_ATTEND=""
 CLEANUP_GRADE=""
@@ -39,7 +39,7 @@ CLEANUP_SUBJECT=""
 ADMIN_TOKEN=""
 CLEANED=0
 
-# ── Очистка ───────────────────────────────────────────────────
+# Очистка
 do_cleanup() {
     [[ $CLEANED -eq 1 ]] && return
     CLEANED=1
@@ -72,7 +72,7 @@ do_cleanup() {
 }
 trap do_cleanup EXIT
 
-# ── HTTP-хелпер ───────────────────────────────────────────────
+# HTTP-хелпер
 HTTP_BODY=""; HTTP_CODE=""
 
 call() {
@@ -99,7 +99,7 @@ chk() {
     fi
 }
 
-# ── Проверка зависимостей ─────────────────────────────────────
+# Проверка зависимостей
 if ! command -v jq &>/dev/null; then
     echo -e "${RED}ОШИБКА: jq не установлен.${NC}"
     echo "  macOS:  brew install jq"

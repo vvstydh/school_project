@@ -37,8 +37,19 @@
                     <div class="col-md-8">
                         <div class="card">
                             <div class="card-header">
-                                <h3 class="card-title"><i class="fas fa-bell mr-2"></i>Мои уведомления</h3>
-                                <div class="card-tools">
+                                <ul class="nav nav-tabs card-header-tabs" id="notif-tabs">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" href="#" id="tab-inbox" onclick="switchTab('inbox'); return false;">
+                                            <i class="fas fa-inbox mr-1"></i>Входящие
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#" id="tab-sent" onclick="switchTab('sent'); return false;">
+                                            <i class="fas fa-paper-plane mr-1"></i>Отправленные
+                                        </a>
+                                    </li>
+                                </ul>
+                                <div class="card-tools" id="unread-toggle-wrap">
                                     <div class="custom-control custom-switch">
                                         <input type="checkbox" class="custom-control-input" id="unread-only">
                                         <label class="custom-control-label" for="unread-only">Только непрочитанные</label>
@@ -184,8 +195,19 @@
     requireAuth('teacher');
 
     let allNotifs = [], allUsers = [], myClasses = [], cancelStudents = [];
+    let currentTab = 'inbox';
 
-    // ── My notifications ─────────────────────────────────────────────────────
+    // ── Tab switching ────────────────────────────────────────────────────────
+
+    function switchTab(tab) {
+        currentTab = tab;
+        document.getElementById('tab-inbox').classList.toggle('active', tab === 'inbox');
+        document.getElementById('tab-sent').classList.toggle('active', tab === 'sent');
+        document.getElementById('unread-toggle-wrap').style.display = tab === 'inbox' ? '' : 'none';
+        if (tab === 'inbox') renderNotifs(allNotifs); else loadSent();
+    }
+
+    // ── My notifications (inbox) ─────────────────────────────────────────────
 
     function renderNotifs(notifs) {
         const container = document.getElementById('notif-list');
@@ -207,6 +229,30 @@
                 <button class="btn btn-xs btn-outline-primary ml-3 flex-shrink-0" onclick="markRead('${n.id}', this)" title="Отметить прочитанным">
                     <i class="fas fa-check"></i>
                 </button>` : ''}
+            </div>`).join('');
+    }
+
+    async function loadSent() {
+        const container = document.getElementById('notif-list');
+        container.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+        const notifs = await api.get('/notifications/sent');
+        if (!notifs.length) {
+            container.innerHTML = '<div class="text-center text-muted py-4">Нет отправленных уведомлений</div>';
+            return;
+        }
+        container.innerHTML = notifs.map(n => `
+            <div class="d-flex align-items-start p-3 border-bottom">
+                <i class="fas fa-paper-plane fa-lg text-success mr-3 mt-1 flex-shrink-0"></i>
+                <div class="flex-grow-1 notif-text">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <strong class="notif-title">${n.title}</strong>
+                        <small class="text-muted ml-2 flex-shrink-0">${new Date(n.created_at).toLocaleString('ru')}</small>
+                    </div>
+                    <div class="text-muted notif-body">${n.body}</div>
+                </div>
+                <span class="badge badge-${n.is_read ? 'success' : 'secondary'} ml-3 flex-shrink-0">
+                    ${n.is_read ? 'Прочитано' : 'Не прочитано'}
+                </span>
             </div>`).join('');
     }
 
@@ -245,27 +291,32 @@
         });
     });
 
-    document.getElementById('parent-student').addEventListener('change', function () {
+    document.getElementById('parent-student').addEventListener('change', async function () {
         const studentId = this.value;
         const parentSel = document.getElementById('parent-recipient');
-        parentSel.innerHTML = '<option value="">— Выберите родителя —</option>';
-        if (!studentId) return;
-
-        const parents = allUsers.filter(u =>
-            u.role === 'parent' &&
-            Array.isArray(u.children) &&
-            u.children.some(c => String(c.id) === studentId)
-        );
-        if (!parents.length) {
-            parentSel.innerHTML = '<option value="" disabled>Родители не найдены</option>';
+        parentSel.innerHTML = '<option value="">— Загрузка... —</option>';
+        if (!studentId) {
+            parentSel.innerHTML = '<option value="">— Сначала выберите ученика —</option>';
             return;
         }
-        parents.forEach(p => {
-            const opt = document.createElement('option');
-            opt.value = p.id;
-            opt.textContent = `${p.last_name} ${p.first_name}`;
-            parentSel.appendChild(opt);
-        });
+
+        try {
+            const student = await api.get(`/users/${studentId}`);
+            parentSel.innerHTML = '<option value="">— Выберите родителя —</option>';
+            const parents = student.parents || [];
+            if (!parents.length) {
+                parentSel.innerHTML = '<option value="" disabled>Родители не привязаны</option>';
+                return;
+            }
+            parents.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = `${p.last_name} ${p.first_name}`;
+                parentSel.appendChild(opt);
+            });
+        } catch {
+            parentSel.innerHTML = '<option value="" disabled>Ошибка загрузки родителей</option>';
+        }
     });
 
     document.getElementById('parent-form').addEventListener('submit', async (e) => {
@@ -357,7 +408,7 @@
 
         // Populate class selectors in both modals
         const classOpts = myClasses.map(c =>
-            `<option value="${c.id}">${c.name} (${c.academic_year})</option>`
+            `<option value="${c.id}">${c.name} (${c.academic_year}–${c.academic_year + 1})</option>`
         ).join('');
         document.getElementById('parent-class').innerHTML =
             '<option value="">— Выберите класс —</option>' + classOpts;

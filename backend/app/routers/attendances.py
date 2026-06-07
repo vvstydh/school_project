@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.dependencies import get_current_user, require_role
 from app.models.attendance import Attendance
-from app.models.class_ import ClassStudent, TeacherClass
+from app.models.class_ import ClassStudent
 from app.models.lesson import Lesson
 from app.models.user import User
 from app.schemas.attendance import AttendanceCreate, AttendanceUpdate, AttendanceResponse
@@ -19,15 +19,9 @@ _TEACHER_ADMIN = require_role("teacher", "admin", "vice_principal")
 
 
 async def _assert_teacher_controls_lesson(teacher_id: uuid.UUID, lesson: Lesson, db: AsyncSession):
-    result = await db.execute(
-        select(TeacherClass).where(
-            TeacherClass.teacher_id == teacher_id,
-            TeacherClass.class_id == lesson.class_id,
-        )
-    )
-    if not result.scalar_one_or_none():
+    if lesson.teacher_id != teacher_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail="Учитель не ведёт этот класс")
+                            detail="Недостаточно прав для этого урока")
 
 
 @router.get("/", response_model=list[AttendanceResponse], status_code=200, summary="Список записей посещаемости")
@@ -45,8 +39,7 @@ async def list_attendances(
         children_ids = [c.id for c in current_user.children]
         query = query.where(Attendance.student_id.in_(children_ids))
     elif current_user.role == "teacher":
-        teacher_class_ids = select(TeacherClass.class_id).where(TeacherClass.teacher_id == current_user.id)
-        lesson_ids = select(Lesson.id).where(Lesson.class_id.in_(teacher_class_ids))
+        lesson_ids = select(Lesson.id).where(Lesson.teacher_id == current_user.id)
         query = query.where(Attendance.lesson_id.in_(lesson_ids))
 
     if lesson_id:
