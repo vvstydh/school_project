@@ -386,7 +386,7 @@ section "LESSONS"
 call GET /lessons/
 chk "GET /lessons/" "200"
 
-TODAY=$(date +%Y-%m-%d)
+TODAY=$(date -v+1d +%Y-%m-%d 2>/dev/null || date -d "tomorrow" +%Y-%m-%d)
 [[ -n "$CLEANUP_CLASS" && -n "$CLEANUP_TEACHER" && -n "$CLEANUP_SUBJECT" ]] && {
     call POST /lessons/ \
         "{\"class_id\":\"$CLEANUP_CLASS\",\"teacher_id\":\"$CLEANUP_TEACHER\",\"subject_id\":\"$CLEANUP_SUBJECT\",\"date\":\"$TODAY\",\"topic\":\"Тестовый урок\"}"
