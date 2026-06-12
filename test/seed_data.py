@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Заполнение системы демо-данными через API (admin)."""
+"""Заполнение системы демо-данными через API (admin).
+
+Скрипт самодостаточен: не зависит от заранее существующих пользователей
+(кроме встроенного admin@admin.com). Безопасно перезапускать —
+пользователи/предметы/классы создаются идемпотентно по email/имени,
+уроки и оценки добавляются заново при каждом запуске (доп. seed-данные).
+"""
 
 from datetime import date, timedelta
 
@@ -9,10 +15,12 @@ BASE = "http://localhost:8000"
 PASSWORD = "12345678"
 
 
-def login(email, password):
-    r = requests.post(f"{BASE}/auth/login", data={"username": email, "password": password})
-    r.raise_for_status()
-    return r.json()["access_token"]
+def login(email, passwords):
+    for pwd in passwords:
+        r = requests.post(f"{BASE}/auth/login", data={"username": email, "password": pwd})
+        if r.status_code == 200:
+            return r.json()["access_token"]
+    raise SystemExit(f"Не удалось войти как {email}: {r.status_code} {r.text}")
 
 
 def auth(token):
@@ -32,183 +40,188 @@ def get(path, token):
     return r.json()
 
 
-admin_token = login("admin@admin.com", PASSWORD)
+admin_token = login("admin@admin.com", [PASSWORD, "1234"])
 print("admin logged in")
 
 # ── Subjects ────────────────────────────────────────────────────────────────
-new_subjects = ["Математика", "Русский язык", "Физика", "Английский язык"]
+new_subjects = [
+    "Математика", "Русский язык", "Литература", "Физика",
+    "Химия", "Биология", "История", "Английский язык",
+]
 subjects = {s["name"]: s["id"] for s in get("/subjects/", admin_token)}
 for name in new_subjects:
     if name not in subjects:
         r = post("/subjects/", admin_token, {"name": name})
         if r.status_code == 201:
             subjects[name] = r.json()["id"]
-print("subjects:", subjects)
+print("subjects:", len(subjects))
 
 # ── Classes ─────────────────────────────────────────────────────────────────
-new_classes = [("5Б", 2026), ("7Г", 2026), ("9А", 2026)]
+new_classes = [("1А", 2026), ("4Б", 2026), ("5В", 2026), ("7Г", 2026), ("9А", 2026), ("11Б", 2026)]
 classes = {c["name"]: c["id"] for c in get("/classes/", admin_token)}
 for name, year in new_classes:
     if name not in classes:
         r = post("/classes/", admin_token, {"name": name, "academic_year": year})
         if r.status_code == 201:
             classes[name] = r.json()["id"]
-print("classes:", classes)
+print("classes:", len(classes))
+
+users = {u["email"]: u for u in get("/users/", admin_token)}
+
+
+def ensure_user(email, role, fn, ln, mn, body_extra=None):
+    if email not in users:
+        body = {"email": email, "password": PASSWORD, "role": role,
+                "first_name": fn, "last_name": ln, "middle_name": mn}
+        body.update(body_extra or {})
+        r = post("/users/", admin_token, body)
+        if r.status_code == 201:
+            users[email] = r.json()
+    return users[email]["id"]
+
+
+# ── Vice principal ────────────────────────────────────────────────────────────
+ensure_user("oksana@school.com", "vice_principal", "Оксана", "Васильева", "Леонидовна")
 
 # ── Teachers ────────────────────────────────────────────────────────────────
 new_teachers = [
-    ("elena@school.com",  "Елена",   "Смирнова",  "Викторовна", "Математика"),
-    ("olga@school.com",   "Ольга",   "Кузнецова", "Андреевна",  "Русский язык"),
-    ("sergey@school.com", "Сергей",  "Иванов",    "Петрович",   "Физика"),
-    ("maria@school.com",  "Мария",   "Соколова",  "Игоревна",   "Английский язык"),
+    ("elena@school.com",   "Елена",    "Смирнова",   "Викторовна", "Математика"),
+    ("olga@school.com",    "Ольга",    "Кузнецова",  "Андреевна",  "Русский язык"),
+    ("anna@school.com",    "Анна",     "Белова",     "Сергеевна",  "Литература"),
+    ("sergey@school.com",  "Сергей",   "Иванов",     "Петрович",   "Физика"),
+    ("dmitry@school.com",  "Дмитрий",  "Козлов",     "Андреевич",  "Химия"),
+    ("tatyana@school.com", "Татьяна",  "Воробьёва",  "Олеговна",   "Биология"),
+    ("nikolay@school.com", "Николай",  "Романов",    "Дмитриевич", "История"),
+    ("maria@school.com",   "Мария",    "Соколова",   "Игоревна",   "Английский язык"),
 ]
-users = {u["email"]: u for u in get("/users/", admin_token)}
-
-# ── Vice principal ────────────────────────────────────────────────────────────
-new_vp = [("oksana@school.com", "Оксана", "Васильева", "Леонидовна")]
-for email, fn, ln, mn in new_vp:
-    if email not in users:
-        r = post("/users/", admin_token, {
-            "email": email, "password": PASSWORD, "role": "vice_principal",
-            "first_name": fn, "last_name": ln, "middle_name": mn,
-        })
-        if r.status_code == 201:
-            users[email] = r.json()
-
 teachers = {}
 for email, fn, ln, mn, subj in new_teachers:
-    if email not in users:
-        r = post("/users/", admin_token, {
-            "email": email, "password": PASSWORD, "role": "teacher",
-            "first_name": fn, "last_name": ln, "middle_name": mn,
-        })
-        if r.status_code == 201:
-            users[email] = r.json()
-    teachers[subj] = users[email]["id"]
-    post(f"/users/{users[email]['id']}/teacher-profile", admin_token, {"subject_id": subjects[subj]})
-
-# existing teacher Данила -> История
-danila = users.get("danil@danil.com")
-if danila:
-    teachers["История"] = danila["id"]
-    post(f"/users/{danila['id']}/teacher-profile", admin_token, {"subject_id": subjects.get("История") or list(subjects.values())[0]})
-    history_subj = next((s for s in get("/subjects/", admin_token) if s["name"] == "История"), None)
-    if history_subj:
-        subjects["История"] = history_subj["id"]
-        post(f"/users/{danila['id']}/teacher-profile", admin_token, {"subject_id": history_subj["id"]})
-
-print("teachers:", teachers)
+    uid = ensure_user(email, "teacher", fn, ln, mn)
+    teachers[subj] = uid
+    post(f"/users/{uid}/teacher-profile", admin_token, {"subject_id": subjects[subj]})
+print("teachers:", len(teachers))
 
 # ── Teacher <-> Class links ───────────────────────────────────────────────────
 tc_links = [
-    (teachers["История"],          classes["10А"]),
-    (teachers["История"],          classes["5Б"]),
-    (teachers["Математика"],       classes["5Б"]),
-    (teachers["Математика"],       classes["7Г"]),
-    (teachers["Математика"],       classes["1В"]),
-    (teachers["Русский язык"],     classes["7Г"]),
-    (teachers["Русский язык"],     classes["9А"]),
+    (teachers["Математика"],       classes["1А"]),
+    (teachers["Русский язык"],     classes["1А"]),
+    (teachers["Литература"],       classes["1А"]),
+    (teachers["Математика"],       classes["4Б"]),
+    (teachers["История"],          classes["4Б"]),
+    (teachers["Биология"],         classes["4Б"]),
+    (teachers["Русский язык"],     classes["5В"]),
+    (teachers["Физика"],           classes["5В"]),
+    (teachers["Английский язык"],  classes["5В"]),
+    (teachers["Литература"],       classes["7Г"]),
+    (teachers["Химия"],            classes["7Г"]),
+    (teachers["История"],          classes["7Г"]),
     (teachers["Физика"],           classes["9А"]),
-    (teachers["Английский язык"],  classes["1В"]),
-    (teachers["Английский язык"],  classes["10А"]),
+    (teachers["Английский язык"],  classes["9А"]),
+    (teachers["Химия"],            classes["9А"]),
+    (teachers["Биология"],         classes["11Б"]),
+    (teachers["Математика"],       classes["11Б"]),
+    (teachers["Русский язык"],     classes["11Б"]),
 ]
 for teacher_id, class_id in tc_links:
     post(f"/classes/{class_id}/teachers", admin_token, {"teacher_id": teacher_id, "class_id": class_id})
+print("teacher-class links:", len(tc_links))
 
 # ── Students ────────────────────────────────────────────────────────────────
 new_students = [
-    ("orlov@school.com",    "Дмитрий",   "Орлов",     "Сергеевич",  "2015-03-12", "5Б"),
-    ("volkova@school.com",  "Анна",      "Волкова",   "Игоревна",   "2015-07-22", "5Б"),
-    ("solovyov@school.com", "Кирилл",    "Соловьёв",  "Андреевич",  "2015-01-30", "5Б"),
-    ("morozova@school.com", "Екатерина", "Морозова",  "Павловна",   "2013-05-10", "7Г"),
-    ("novikov@school.com",  "Артём",     "Новиков",   "Денисович",  "2013-09-15", "7Г"),
-    ("zaharova@school.com", "Полина",    "Захарова",  "Романовна",  "2013-11-30", "7Г"),
-    ("fedorov@school.com",  "Максим",    "Фёдоров",   "Олегович",   "2011-02-18", "9А"),
-    ("pavlova@school.com",  "Виктория",  "Павлова",   "Дмитриевна", "2011-06-25", "9А"),
-    ("goncharov@school.com","Никита",    "Гончаров",  "Максимович", "2011-12-01", "9А"),
-    ("zhukova@school.com",  "Софья",     "Жукова",    "Антоновна",  "2018-04-10", "1В"),
-    ("sidorov@school.com",  "Михаил",    "Сидоров",   "Викторович", "2018-08-19", "1В"),
+    # 1А
+    ("kuzmin@school.com",    "Иван",      "Кузьмин",    "Олегович",    "2019-02-14", "1А"),
+    ("tihonova@school.com",  "Мария",     "Тихонова",   "Игоревна",    "2019-05-03", "1А"),
+    ("belyaev@school.com",   "Артём",     "Беляев",     "Дмитриевич",  "2019-09-21", "1А"),
+    ("nikitina@school.com",  "Дарья",     "Никитина",   "Андреевна",   "2019-11-08", "1А"),
+    # 4Б
+    ("polyakov@school.com",  "Степан",    "Поляков",    "Викторович",  "2016-01-19", "4Б"),
+    ("guseva@school.com",    "Алина",     "Гусева",     "Сергеевна",   "2016-04-27", "4Б"),
+    ("vinogradov@school.com","Егор",      "Виноградов", "Романович",   "2016-07-12", "4Б"),
+    ("soboleva@school.com",  "Вероника",  "Соболева",   "Денисовна",   "2016-10-30", "4Б"),
+    # 5В
+    ("bogdanov@school.com",  "Тимур",     "Богданов",   "Маратович",   "2015-03-05", "5В"),
+    ("makarova@school.com",  "Ксения",    "Макарова",   "Павловна",    "2015-06-18", "5В"),
+    ("andreev@school.com",   "Роман",     "Андреев",    "Игоревич",    "2015-08-22", "5В"),
+    ("denisova@school.com",  "Алиса",     "Денисова",   "Олеговна",    "2015-12-09", "5В"),
+    # 7Г
+    ("safonov@school.com",   "Илья",      "Сафонов",    "Андреевич",   "2013-02-27", "7Г"),
+    ("krylova@school.com",   "Юлия",      "Крылова",    "Денисовна",   "2013-05-14", "7Г"),
+    ("voronin@school.com",   "Глеб",      "Воронин",    "Викторович",  "2013-09-03", "7Г"),
+    ("zimina@school.com",    "Виктория",  "Зимина",     "Романовна",   "2013-11-25", "7Г"),
+    # 9А
+    ("markin@school.com",    "Денис",     "Маркин",     "Олегович",    "2011-01-16", "9А"),
+    ("sorokina@school.com",  "Анастасия", "Сорокина",   "Игоревна",    "2011-04-08", "9А"),
+    ("gavrilov@school.com",  "Владислав", "Гаврилов",   "Андреевич",   "2011-07-29", "9А"),
+    ("kornilova@school.com", "Елизавета", "Корнилова",  "Денисовна",   "2011-10-12", "9А"),
+    # 11Б
+    ("konovalov@school.com", "Игорь",     "Коновалов",  "Романович",   "2009-03-22", "11Б"),
+    ("klimova@school.com",   "Софья",     "Климова",    "Викторовна",  "2009-06-10", "11Б"),
+    ("fomin@school.com",     "Александр", "Фомин",      "Денисович",   "2009-09-17", "11Б"),
+    ("zhdanova@school.com",  "Полина",    "Жданова",    "Игоревна",    "2009-12-04", "11Б"),
 ]
 students = {}
 for email, fn, ln, mn, dob, cls in new_students:
-    if email not in users:
-        r = post("/users/", admin_token, {
-            "email": email, "password": PASSWORD, "role": "student",
-            "first_name": fn, "last_name": ln, "middle_name": mn,
-        })
-        if r.status_code == 201:
-            users[email] = r.json()
-    sid = users[email]["id"]
+    sid = ensure_user(email, "student", fn, ln, mn)
     students[email] = (sid, cls)
     post(f"/users/{sid}/student-profile", admin_token, {"date_of_birth": dob})
     post(f"/classes/{classes[cls]}/students", admin_token, {
         "class_id": classes[cls], "student_id": sid, "academic_year": 2026,
     })
-
 print("students:", len(students))
 
 # ── Parents ─────────────────────────────────────────────────────────────────
 new_parents = [
-    ("orlova_p@school.com",   "Татьяна",    "Орлова",    "Николаевна", ["orlov@school.com", "volkova@school.com"]),
-    ("morozov_p@school.com",  "Александр",  "Морозов",   "Сергеевич",  ["morozova@school.com", "novikov@school.com"]),
-    ("zaharova_p@school.com", "Ирина",      "Захарова",  "Викторовна", ["zaharova@school.com", "fedorov@school.com"]),
-    ("goncharov_p@school.com","Владимир",   "Гончаров",  "Олегович",   ["goncharov@school.com", "pavlova@school.com", "zhukova@school.com", "sidorov@school.com"]),
+    ("orlova_p@school.com",    "Татьяна",  "Орлова",    "Николаевна",   ["kuzmin@school.com", "tihonova@school.com"]),
+    ("morozov_p@school.com",   "Александр","Морозов",   "Сергеевич",    ["belyaev@school.com", "nikitina@school.com"]),
+    ("zaharova_p@school.com",  "Ирина",    "Захарова",  "Викторовна",   ["polyakov@school.com", "guseva@school.com"]),
+    ("goncharov_p@school.com", "Владимир", "Гончаров",  "Олегович",     ["vinogradov@school.com", "soboleva@school.com"]),
+    ("belyaeva_p@school.com",  "Наталья",  "Беляева",   "Игоревна",     ["bogdanov@school.com", "makarova@school.com", "andreev@school.com"]),
+    ("safonov_p@school.com",   "Андрей",   "Сафонов",   "Викторович",   ["denisova@school.com", "safonov@school.com", "krylova@school.com"]),
+    ("voronina_p@school.com",  "Марина",   "Воронина",  "Александровна",["voronin@school.com", "zimina@school.com", "markin@school.com"]),
+    ("sorokin_p@school.com",   "Павел",    "Сорокин",   "Игоревич",     ["sorokina@school.com", "gavrilov@school.com", "kornilova@school.com"]),
+    ("konovalova_p@school.com","Екатерина","Коновалова","Дмитриевна",   ["konovalov@school.com", "klimova@school.com"]),
+    ("fomin_p@school.com",     "Денис",    "Фомин",     "Андреевич",    ["fomin@school.com", "zhdanova@school.com"]),
 ]
 for email, fn, ln, mn, children in new_parents:
-    if email not in users:
-        r = post("/users/", admin_token, {
-            "email": email, "password": PASSWORD, "role": "parent",
-            "first_name": fn, "last_name": ln, "middle_name": mn,
-        })
-        if r.status_code == 201:
-            users[email] = r.json()
-    parent_id = users[email]["id"]
+    parent_id = ensure_user(email, "parent", fn, ln, mn)
     for child_email in children:
-        post(f"/users/parents/{parent_id}/children/{students[child_email][0]}", admin_token, {})
-
-# link existing parent ded@ded.com -> anton@anton.com
-parent_ded = users.get("ded@ded.com")
-student_anton = users.get("anton@anton.com")
-if parent_ded and student_anton:
-    post(f"/users/parents/{parent_ded['id']}/children/{student_anton['id']}", admin_token, {})
-
-print("parents linked")
+        post(f"/users/parents/{parent_id}/children/{students[child_email][0]}", admin_token, None)
+print("parents:", len(new_parents))
 
 # ── Lessons ─────────────────────────────────────────────────────────────────
 TODAY = date.today()
-lesson_defs = [
-    (classes["10А"], teachers["Английский язык"], subjects["Английский язык"], 4,  "Время Present Perfect: образование и употребление"),
-    (classes["10А"], teachers["История"],         subjects["История"],         7,  "Великая Отечественная война: основные этапы"),
-    (classes["5Б"],  teachers["Математика"],      subjects["Математика"],      1,  "Дроби и их свойства"),
-    (classes["5Б"],  teachers["История"],         subjects["История"],         5,  "Древний Египет"),
-    (classes["7Г"],  teachers["Математика"],      subjects["Математика"],      2,  "Квадратные уравнения"),
-    (classes["7Г"],  teachers["Русский язык"],    subjects["Русский язык"],    6,  "Причастие как часть речи"),
-    (classes["9А"],  teachers["Физика"],          subjects["Физика"],          3,  "Законы Ньютона"),
-    (classes["9А"],  teachers["Русский язык"],    subjects["Русский язык"],    8,  "Сложноподчинённые предложения"),
-    (classes["1В"],  teachers["Английский язык"], subjects["Английский язык"], 1,  "Алфавит и базовые слова"),
-    (classes["1В"],  teachers["Математика"],      subjects["Математика"],      9,  "Счёт до 20"),
-]
+TOPICS = {
+    "Математика":      "Решение линейных уравнений",
+    "Русский язык":    "Правописание безударных гласных в корне",
+    "Литература":      "Анализ художественного текста",
+    "Физика":          "Законы движения Ньютона",
+    "Химия":           "Периодическая система элементов",
+    "Биология":        "Строение клетки",
+    "История":         "Эпоха великих реформ",
+    "Английский язык": "Время Past Simple: образование и употребление",
+}
+subj_by_teacher = {tid: subj for subj, tid in teachers.items()}
+
 lessons = []
-for class_id, teacher_id, subject_id, day_offset, topic in lesson_defs:
-    lesson_date = (TODAY + timedelta(days=day_offset)).isoformat()
+for idx, (teacher_id, class_id) in enumerate(tc_links):
+    subj = subj_by_teacher[teacher_id]
+    lesson_date = (TODAY + timedelta(days=1 + idx)).isoformat()
     r = post("/lessons/", admin_token, {
-        "class_id": class_id, "teacher_id": teacher_id, "subject_id": subject_id,
-        "date": lesson_date, "topic": topic,
+        "class_id": class_id, "teacher_id": teacher_id, "subject_id": subjects[subj],
+        "date": lesson_date, "topic": TOPICS[subj],
     })
     if r.status_code == 201:
         lessons.append(r.json())
-
 print("lessons created:", len(lessons))
 
 # class_id -> [student_id]
 class_students = {}
 for email, (sid, cls) in students.items():
     class_students.setdefault(classes[cls], []).append(sid)
-class_students.setdefault(classes["10А"], []).append(student_anton["id"])
 
 # ── Grades + Attendances ──────────────────────────────────────────────────────
-grade_cycle = [5, 4, 3, 5, 4]
-att_cycle = ["present", "present", "late", "present", "absent"]
+grade_cycle = [5, 4, 3, 5, 4, 2]
+att_cycle = ["present", "present", "late", "present", "absent", "excused"]
 i = 0
 for lesson in lessons:
     for sid in class_students.get(lesson["class_id"], []):
@@ -221,16 +234,25 @@ for lesson in lessons:
             "status": att_cycle[i % len(att_cycle)],
         })
         i += 1
-
-print("grades/attendances created")
+print("grades/attendances created:", i)
 
 # ── Notifications ──────────────────────────────────────────────────────────────
-notif_targets = [student_anton["id"]] + [students[e][0] for e in students]
-for idx, sid in enumerate(notif_targets[:6]):
+student_ids = [students[e][0] for e in students]
+teacher_ids = list(teachers.values())
+
+for sid in student_ids:
     post("/notifications/", admin_token, {
         "recipient_id": sid,
         "title": "Добро пожаловать в Зурнал",
         "body": "Ваш аккаунт активирован. Следите за расписанием уроков и оценками в системе.",
     })
 
+for tid in teacher_ids:
+    post("/notifications/", admin_token, {
+        "recipient_id": tid,
+        "title": "Обновление расписания",
+        "body": "Проверьте актуальное расписание уроков на следующую неделю в личном кабинете.",
+    })
+
+print("notifications created:", len(student_ids) + len(teacher_ids))
 print("done")
