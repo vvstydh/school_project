@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Заполнение системы демо-данными через API (admin)."""
 
+from datetime import date, timedelta
+
 import requests
 
 BASE = "http://localhost:8000"
@@ -173,23 +175,25 @@ if parent_ded and student_anton:
 print("parents linked")
 
 # ── Lessons ─────────────────────────────────────────────────────────────────
+TODAY = date.today()
 lesson_defs = [
-    (classes["10А"], teachers["Английский язык"], subjects["Английский язык"], "2026-06-15", "Present Perfect Tense — образование и употребление"),
-    (classes["10А"], teachers["История"],         subjects["История"],         "2026-06-18", "Великая Отечественная война: основные этапы"),
-    (classes["5Б"],  teachers["Математика"],      subjects["Математика"],      "2026-06-12", "Дроби и их свойства"),
-    (classes["5Б"],  teachers["История"],         subjects["История"],         "2026-06-16", "Древний Египет"),
-    (classes["7Г"],  teachers["Математика"],      subjects["Математика"],      "2026-06-13", "Квадратные уравнения"),
-    (classes["7Г"],  teachers["Русский язык"],    subjects["Русский язык"],    "2026-06-17", "Причастие как часть речи"),
-    (classes["9А"],  teachers["Физика"],          subjects["Физика"],          "2026-06-14", "Законы Ньютона"),
-    (classes["9А"],  teachers["Русский язык"],    subjects["Русский язык"],    "2026-06-19", "Сложноподчинённые предложения"),
-    (classes["1В"],  teachers["Английский язык"], subjects["Английский язык"], "2026-06-12", "Алфавит и базовые слова"),
-    (classes["1В"],  teachers["Математика"],      subjects["Математика"],      "2026-06-20", "Счёт до 20"),
+    (classes["10А"], teachers["Английский язык"], subjects["Английский язык"], 4,  "Время Present Perfect: образование и употребление"),
+    (classes["10А"], teachers["История"],         subjects["История"],         7,  "Великая Отечественная война: основные этапы"),
+    (classes["5Б"],  teachers["Математика"],      subjects["Математика"],      1,  "Дроби и их свойства"),
+    (classes["5Б"],  teachers["История"],         subjects["История"],         5,  "Древний Египет"),
+    (classes["7Г"],  teachers["Математика"],      subjects["Математика"],      2,  "Квадратные уравнения"),
+    (classes["7Г"],  teachers["Русский язык"],    subjects["Русский язык"],    6,  "Причастие как часть речи"),
+    (classes["9А"],  teachers["Физика"],          subjects["Физика"],          3,  "Законы Ньютона"),
+    (classes["9А"],  teachers["Русский язык"],    subjects["Русский язык"],    8,  "Сложноподчинённые предложения"),
+    (classes["1В"],  teachers["Английский язык"], subjects["Английский язык"], 1,  "Алфавит и базовые слова"),
+    (classes["1В"],  teachers["Математика"],      subjects["Математика"],      9,  "Счёт до 20"),
 ]
 lessons = []
-for class_id, teacher_id, subject_id, date, topic in lesson_defs:
+for class_id, teacher_id, subject_id, day_offset, topic in lesson_defs:
+    lesson_date = (TODAY + timedelta(days=day_offset)).isoformat()
     r = post("/lessons/", admin_token, {
         "class_id": class_id, "teacher_id": teacher_id, "subject_id": subject_id,
-        "date": date, "topic": topic,
+        "date": lesson_date, "topic": topic,
     })
     if r.status_code == 201:
         lessons.append(r.json())
