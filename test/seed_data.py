@@ -61,6 +61,18 @@ new_teachers = [
     ("maria@school.com",  "Мария",   "Соколова",  "Игоревна",   "Английский язык"),
 ]
 users = {u["email"]: u for u in get("/users/", admin_token)}
+
+# ── Vice principal ────────────────────────────────────────────────────────────
+new_vp = [("oksana@school.com", "Оксана", "Васильева", "Леонидовна")]
+for email, fn, ln, mn in new_vp:
+    if email not in users:
+        r = post("/users/", admin_token, {
+            "email": email, "password": PASSWORD, "role": "vice_principal",
+            "first_name": fn, "last_name": ln, "middle_name": mn,
+        })
+        if r.status_code == 201:
+            users[email] = r.json()
+
 teachers = {}
 for email, fn, ln, mn, subj in new_teachers:
     if email not in users:
